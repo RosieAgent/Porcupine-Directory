@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: porcupine_directory
+      POSTGRES_USER: porcupine
+      POSTGRES_PASSWORD: porcupine
+    ports:
+      - "5432:5432"
+    volumes:
+      - porcupine-postgres:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U porcupine -d porcupine_directory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://porcupine:porcupine@db:5432/porcupine_directory
+      FSP_CALENDAR_URL: https://community.fsp.org/calendar/
+    ports:
+      - "3000:3000"
+
+volumes:
+  porcupine-postgres:
