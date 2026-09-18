@@ -28,6 +28,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [notice, setNotice] = useState("");
   const [savedIds, setSavedIds] = useState<Set<string>>(() => {
     try {
@@ -139,7 +140,7 @@ function App() {
           {error && <div className="status-card error-card"><strong>Not connected yet.</strong><span>{error} Start PostgreSQL and the API with <code>npm run db:up && npm run dev</code>.</span></div>}
           {!error && loading && <div className="status-card"><span className="loading-orb" />Loading the directory…</div>}
           {!error && !loading && listings.length === 0 && <div className="empty-state"><div className="empty-mark">✳</div><h3>{hasSearch ? "Nothing matches that search yet" : "The map is ready for its first entries"}</h3><p>{hasSearch ? "Try another phrase or clear a filter. If something is missing, you can submit it for review." : "The public data import is intentionally waiting for a verified source export. Add a useful group, channel, business, or resource and it will enter the review queue."}</p><button className="button dark" onClick={() => setShowAddForm(true)}>Add a directory entry <span>↗</span></button></div>}
-          {!error && !loading && listings.length > 0 && <div className="listing-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} saved={savedIds.has(listing.id)} onSave={() => toggleSaved(listing.id)} />)}</div>}
+          {!error && !loading && listings.length > 0 && <div className="listing-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} saved={savedIds.has(listing.id)} onSave={() => toggleSaved(listing.id)} onOpen={() => setSelectedListing(listing)} />)}</div>}
         </section>
 
         <section className="events-section" id="events">
@@ -158,13 +159,18 @@ function App() {
       <footer><span>PORCUPINE DIRECTORY · NH</span><span>Community-built, source-linked, privacy-minded.</span></footer>
 
       {showAddForm && <AddListingForm onClose={() => setShowAddForm(false)} onSubmitted={(message) => { setShowAddForm(false); setNotice(message); }} />}
+      {selectedListing && <ListingDetail listing={selectedListing} onClose={() => setSelectedListing(null)} />}
       {notice && <div className="toast" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
     </div>
   );
 }
 
-function ListingCard({ listing, saved, onSave }: { listing: Listing; saved: boolean; onSave: () => void }) {
-  return <article className="listing-card"><div className="card-top"><span className={`type-label ${listing.kind}`}>{kindLabels[listing.kind]}</span><button className={saved ? "save-button saved" : "save-button"} onClick={onSave} aria-label={saved ? `Remove ${listing.name} from saved` : `Save ${listing.name}`}>{saved ? "★" : "☆"}</button></div><h3>{listing.name}</h3><p>{listing.summary}</p><div className="card-meta"><span>{accessLabels[listing.accessMode]}</span>{listing.location && <span>{listing.location}</span>}</div><div className="tag-row">{listing.tags.slice(0, 4).map((tag) => <span key={tag}>#{tag}</span>)}</div><div className="card-footer"><small>{listing.sourceName}</small>{listing.url && <a href={listing.url} target="_blank" rel="noreferrer">Open ↗</a>}</div></article>;
+function ListingCard({ listing, saved, onSave, onOpen }: { listing: Listing; saved: boolean; onSave: () => void; onOpen: () => void }) {
+  return <article className="listing-card"><div className="card-top"><span className={`type-label ${listing.kind}`}>{kindLabels[listing.kind]}</span><button className={saved ? "save-button saved" : "save-button"} onClick={onSave} aria-label={saved ? `Remove ${listing.name} from saved` : `Save ${listing.name}`}>{saved ? "★" : "☆"}</button></div><button className="listing-title" onClick={onOpen}><h3>{listing.name}</h3></button><p>{listing.summary}</p><div className="card-meta"><span>{accessLabels[listing.accessMode]}</span>{listing.location && <span>{listing.location}</span>}</div><div className="tag-row">{listing.tags.slice(0, 4).map((tag) => <span key={tag}>#{tag}</span>)}</div><div className="card-footer"><small>{listing.sourceName}</small>{listing.url && <a href={listing.url} target="_blank" rel="noreferrer">Open ↗</a>}</div></article>;
+}
+
+function ListingDetail({ listing, onClose }: { listing: Listing; onClose: () => void }) {
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div className="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="listing-title"><div className="modal-heading"><div><p className={`eyebrow detail-kind ${listing.kind}`}>{kindLabels[listing.kind]}</p><h2 id="listing-title">{listing.name}</h2></div><button className="close-button" onClick={onClose} aria-label="Close">×</button></div><p className="detail-summary">{listing.summary}</p><div className="detail-facts"><span>{accessLabels[listing.accessMode]}</span>{listing.location && <span>{listing.location}</span>}</div>{listing.description && <p className="detail-description">{listing.description}</p>}<div className="access-box"><strong>How to participate</strong><p>{listing.accessInstructions || "Participation details have not been confirmed yet."}</p></div>{listing.tags.length > 0 && <div className="tag-row detail-tags">{listing.tags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}<div className="detail-links">{listing.url && <a href={listing.url} target="_blank" rel="noreferrer" className="button dark">Open website ↗</a>}{listing.contactUrl && <a href={listing.contactUrl} target="_blank" rel="noreferrer" className="button ghost">Contact ↗</a>}</div><small className="detail-source">Source: {listing.sourceName}{listing.sourceUrl ? <>{" · "}<a href={listing.sourceUrl} target="_blank" rel="noreferrer">verify source</a></> : ""}</small></div></div>;
 }
 
 function AddListingForm({ onClose, onSubmitted }: { onClose: () => void; onSubmitted: (message: string) => void }) {
