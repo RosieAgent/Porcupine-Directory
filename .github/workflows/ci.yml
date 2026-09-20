@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main, production]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: porcupine_directory
+          POSTGRES_USER: porcupine
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U porcupine -d porcupine_directory"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://porcupine:ci-only-password@localhost:5432/porcupine_directory
+      TEST_DATABASE_URL: postgres://porcupine:ci-only-password@localhost:5432/porcupine_directory
+      APP_ORIGIN: http://localhost:4350
+      SESSION_SECRET: ci-only-session-secret-that-is-long-enough
+      FSP_SYNC_ENABLED: "false"
+      PUBLICATION_SYNC_ENABLED: "false"
+      SMTP_MODE: smtp
+      STAFF_AUTH_MODE: session
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run release checks
+        run: npm run release:check
+      - name: Run synchronization integration checks
+        run: npm run test:sync
+      - name: Check production dependencies
+        run: npm audit --omit=dev --audit-level=moderate

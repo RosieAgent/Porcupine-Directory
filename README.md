@@ -14,7 +14,7 @@ Default discovery prioritizes recent confirmation/review, with its exact rules d
 
 See [the architecture guide](docs/architecture.md) for route conventions, state ownership, library choices, and development checks. Localhost links work only on this machine; the same paths will be shareable with others once hosted on a public domain.
 
-The release candidate has a production Compose override and launch checklist in [docs/release-v0.1.md](docs/release-v0.1.md). The base `compose.yaml` remains the loopback-only local preview configuration.
+The release candidate has a production Compose override and launch checklist in [docs/release-v0.1.md](docs/release-v0.1.md). The Hostinger VPS procedure is in [docs/deploy-hostinger.md](docs/deploy-hostinger.md). The base `compose.yaml` remains the loopback-only local preview configuration.
 
 ## Start or rebuild
 

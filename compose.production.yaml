@@ -55,3 +55,21 @@ services:
       EMAIL_ENCRYPTION_KEY: ${EMAIL_ENCRYPTION_KEY:-}
       DONATION_BITCOIN_ADDRESS: ${DONATION_BITCOIN_ADDRESS:-}
       DONATION_LIGHTNING_ADDRESS: ${DONATION_LIGHTNING_ADDRESS:-}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - porcupine-caddy-data:/data
+      - porcupine-caddy-config:/config
+
+volumes:
+  porcupine-caddy-data:
+  porcupine-caddy-config:

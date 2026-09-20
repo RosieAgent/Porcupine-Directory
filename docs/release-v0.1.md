@@ -22,6 +22,8 @@ The full release verification completed locally on September 20, 2026: productio
 
 ## Production setup
 
+The step-by-step Hostinger procedure is in [`docs/deploy-hostinger.md`](deploy-hostinger.md). The production Compose overlay includes Caddy for HTTPS on `porcupinedirectory.com`; GitHub Actions deploys only the `production` branch after its verification job passes.
+
 Copy the example environment file, fill every required value, and keep it outside version control:
 
 ```bash

@@ -1,0 +1,101 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: porcupine_directory
+          POSTGRES_USER: porcupine
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U porcupine -d porcupine_directory"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://porcupine:ci-only-password@localhost:5432/porcupine_directory
+      TEST_DATABASE_URL: postgres://porcupine:ci-only-password@localhost:5432/porcupine_directory
+      APP_ORIGIN: http://localhost:4350
+      SESSION_SECRET: ci-only-session-secret-that-is-long-enough
+      FSP_SYNC_ENABLED: "false"
+      PUBLICATION_SYNC_ENABLED: "false"
+      SMTP_MODE: smtp
+      STAFF_AUTH_MODE: session
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run release checks
+        run: npm run release:check
+      - name: Run synchronization integration checks
+        run: npm run test:sync
+      - name: Check production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/production' && vars.PRODUCTION_HOST != '' && vars.PRODUCTION_USER != '' && vars.PRODUCTION_PATH != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://porcupinedirectory.com
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Create release archive
+        run: git archive --format=tar.gz --output "$RUNNER_TEMP/porcupine-directory.tar.gz" "$GITHUB_SHA"
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.PRODUCTION_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$DEPLOY_SSH_PRIVATE_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > "$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+          chmod 0600 "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
+      - name: Upload release
+        env:
+          DEPLOY_HOST: ${{ vars.PRODUCTION_HOST }}
+          DEPLOY_USER: ${{ vars.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ vars.PRODUCTION_PATH }}
+        run: |
+          set -Eeuo pipefail
+          ssh_options=(-i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15)
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "install -d -m 0750 '$DEPLOY_PATH/releases/$GITHUB_SHA'"
+          scp "${ssh_options[@]}" "$RUNNER_TEMP/porcupine-directory.tar.gz" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/releases/$GITHUB_SHA/release.tar.gz"
+      - name: Activate release
+        env:
+          DEPLOY_HOST: ${{ vars.PRODUCTION_HOST }}
+          DEPLOY_USER: ${{ vars.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ vars.PRODUCTION_PATH }}
+        run: |
+          set -Eeuo pipefail
+          ssh_options=(-i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15)
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "bash -s -- '$DEPLOY_PATH' '$GITHUB_SHA'" < deploy/install-release.sh
