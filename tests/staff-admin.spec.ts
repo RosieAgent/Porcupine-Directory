@@ -93,9 +93,7 @@ test("administrator verifies a password without passkeys and sees only the admin
   ).toBeVisible();
   await expect(page.getByLabel(/^Current password/)).toHaveValue("");
   await expect(page.locator("main")).not.toContainText(/passkey/i);
-  await page
-    .getByRole("button", { name: "private.admin administrator" })
-    .click();
+  await page.getByRole("row", { name: /private\.admin administrator/ }).click();
   await expect(page.getByLabel("Exact username")).toHaveValue("private.admin");
   await page
     .getByRole("button", { name: "fsp_calendar: partial · 1 skipped" })

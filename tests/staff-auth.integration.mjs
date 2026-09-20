@@ -104,6 +104,16 @@ try {
     username: "fixture.editor",
     role: "editor",
   });
+  const managed = await owner.call("/admin/account?username=fixture.editor");
+  assert.equal(managed.alias, "Anonymous");
+  await owner.call(`/admin/users/${managed.id}`, "PUT", {
+    username: "fixture.editor",
+    alias: "Managed monitor",
+    role: "editor",
+  });
+  const edited = await owner.call("/admin/account?username=fixture.editor");
+  assert.equal(edited.alias, "Managed monitor");
+  await owner.call(`/admin/users/${session.user.id}`, "DELETE", {}, 400);
   await editor.call("/listings/manage?all=true", "GET", undefined, 401);
   await editor.call("/auth/login", "POST", {
     username: "fixture.editor",
@@ -111,6 +121,8 @@ try {
   });
   await editor.call("/listings/manage?all=true");
   await editor.call("/admin/users", "GET", undefined, 403);
+  await owner.call(`/admin/users/${managed.id}`, "DELETE", {}, 200);
+  assert.equal((await editor.call("/auth/session")).user, null);
   await editor.call(
     "/admin/role",
     "PUT",

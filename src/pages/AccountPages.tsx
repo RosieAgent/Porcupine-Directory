@@ -3,7 +3,7 @@ import { EventSyncDiagnostics } from "../components/EventSyncDiagnostics";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutlineOutlined";
 import Logout from "@mui/icons-material/Logout";
 import { ConfirmPasswordField } from "../components/ConfirmPasswordField";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Button,
@@ -42,7 +42,7 @@ import {
 import { listingsResponse } from "../../shared/contracts";
 import { ConfirmationBadges } from "../components/ConfirmationBadges";
 import { StaffVerification } from "../components/StaffVerification";
-import { AdminUsers } from "../components/AdminUsers";
+import { AdminUsers, type AdminUser } from "../components/AdminUsers";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import { EmailSettings } from "../components/EmailSettings";
 import SendOutlined from "@mui/icons-material/SendOutlined";
@@ -663,106 +663,235 @@ function Entries({ all }: { all: boolean }) {
   );
 }
 function Administration() {
-  const { passkeysEnabled, staffAuthMode, refresh } = useAuth();
+  const { user, passkeysEnabled, staffAuthMode } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<string>();
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState<"user" | "editor">("editor");
+  const [alias, setAlias] = useState("");
+  const [role, setRole] = useState<"user" | "editor">("user");
   const lookup = useMutation({
-    mutationFn: () =>
+    mutationFn: (name: string) =>
       request(
-        "/admin/account?username=" + encodeURIComponent(username),
+        "/admin/account?username=" + encodeURIComponent(name),
         z.object({
+          id: z.uuid(),
           username: z.string(),
-          role: z.string(),
+          alias: z.string(),
+          role: z.enum(["user", "editor", "administrator"]),
           privilegesSuspended: z.boolean(),
           passkeyCount: z.number(),
         }),
       ),
-  });
-  const assign = useMutation({
-    mutationFn: () => mutate("/admin/role", okSchema, { username, role }),
-    onSuccess: async () => {
-      await refresh();
-      lookup.mutate();
+    onSuccess: (account) => {
+      setSelectedId(account.id);
+      setUsername(account.username);
+      setAlias(account.alias);
+      if (account.role !== "administrator") setRole(account.role);
     },
   });
+  const edit = useMutation({
+    mutationFn: () => {
+      if (!selectedId) throw new Error("Select an account first.");
+      return mutate(
+        "/admin/users/" + selectedId,
+        okSchema,
+        { username, alias, role },
+        "PUT",
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["private", "admin-users"],
+      });
+      lookup.mutate(username);
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (accountId: string) => {
+      return mutate("/admin/users/" + accountId, okSchema, {}, "DELETE");
+    },
+    onSuccess: async (_, accountId) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["private", "admin-users"],
+      });
+      if (selectedId === accountId) {
+        setSelectedId(undefined);
+        setUsername("");
+        setAlias("");
+        lookup.reset();
+      }
+    },
+  });
+  const monitor = useMutation({
+    mutationFn: (account: AdminUser) =>
+      mutate(
+        "/admin/role",
+        okSchema,
+        {
+          username: account.username,
+          role: account.role === "editor" ? "user" : "editor",
+        },
+        "PUT",
+      ),
+    onSuccess: async (_, account) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["private", "admin-users"],
+      });
+      if (selectedId === account.id) lookup.mutate(account.username);
+    },
+  });
+  const selected = lookup.data;
+  const editingOwnAccount = selected?.id === user?.id;
+  const administratorSelected = selected?.role === "administrator";
   return (
     <Page
       title="Administration"
       description={
         staffAuthMode === "passkey" && passkeysEnabled
-          ? "Assign global editors by their private username. Users must register a passkey and save their recovery phrase first."
-          : "Manage accounts and assign global editors. Recipients must save their recovery phrase first."
+          ? "Manage private accounts and assign global monitor access. Users must register a passkey and save their recovery phrase first."
+          : "Manage private accounts and assign global monitor access. Recipients must save their recovery phrase first."
       }
     >
       <StaffVerification />
       <AdminUsers
-        onSelect={(value) => {
-          setUsername(value);
+        selectedId={selectedId}
+        onEdit={(account: AdminUser) => {
+          setUsername(account.username);
+          setAlias("");
+          setRole(account.role === "editor" ? "editor" : "user");
           lookup.reset();
-          assign.reset();
+          edit.reset();
+          remove.reset();
+          monitor.reset();
+          lookup.mutate(account.username);
+        }}
+        onDelete={(account) => {
+          if (
+            window.confirm(
+              `Delete ${account.username}? This permanently removes the account and its saved data.`,
+            )
+          )
+            remove.mutate(account.id);
+        }}
+        onToggleMonitor={(account) => {
+          const action = account.role === "editor" ? "Remove" : "Make";
+          if (
+            window.confirm(
+              `${action} monitor access for ${account.username}? This signs them out.`,
+            )
+          )
+            monitor.mutate(account);
         }}
       />
       <Paper variant="outlined" sx={{ p: 3, maxWidth: 650 }}>
         <Stack spacing={2}>
-          <TextField
-            label="Exact username"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              lookup.reset();
-              assign.reset();
-            }}
-          />
-          <IconAction
-            label="Find account"
-            disabled={lookup.isPending}
-            onClick={() => lookup.mutate()}
-          >
-            <Search />
-          </IconAction>
-          {lookup.data && (
+          {!selected && (
             <>
-              <Typography>
-                {lookup.data.username} · {lookup.data.role} ·{" "}
-                {passkeysEnabled && `${lookup.data.passkeyCount} passkey(s)`}
-                {lookup.data.privilegesSuspended
-                  ? " · privileges suspended"
-                  : ""}
-              </Typography>
               <TextField
-                select
-                label="Role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as "user" | "editor")}
-              >
-                <MenuItem value="user">User (remove editor access)</MenuItem>
-                <MenuItem value="editor">Editor (global access)</MenuItem>
-              </TextField>
-              <IconAction
-                label="Assign role"
-                disabled={assign.isPending}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Assign ${role} access to ${username}? This signs them out.`,
-                    )
-                  )
-                    assign.mutate();
+                label="Exact username"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  lookup.reset();
+                  edit.reset();
+                  remove.reset();
                 }}
+              />
+              <IconAction
+                label="Find account"
+                disabled={lookup.isPending || !username}
+                onClick={() => lookup.mutate(username)}
               >
-                <SaveOutlined />
+                <Search />
               </IconAction>
             </>
           )}
-          {(lookup.error || assign.error) && (
+          {selected && (
+            <>
+              <Typography>
+                {selected.username} ·{" "}
+                {selected.role === "editor" ? "monitor" : selected.role} ·{" "}
+                {passkeysEnabled && `${selected.passkeyCount} passkey(s)`}
+                {selected.privilegesSuspended ? " · privileges suspended" : ""}
+              </Typography>
+              {administratorSelected ? (
+                <Alert severity="info">
+                  Administrator accounts are managed from the trusted host
+                  console.
+                </Alert>
+              ) : (
+                <>
+                  <TextField
+                    label="Private username"
+                    value={username}
+                    disabled={editingOwnAccount}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      edit.reset();
+                    }}
+                  />
+                  <TextField
+                    label="Private display name"
+                    value={alias}
+                    disabled={editingOwnAccount}
+                    onChange={(e) => {
+                      setAlias(e.target.value);
+                      edit.reset();
+                    }}
+                    slotProps={{ htmlInput: { maxLength: 80 } }}
+                  />
+                  <TextField
+                    select
+                    label="Access"
+                    value={role}
+                    disabled={editingOwnAccount}
+                    onChange={(e) =>
+                      setRole(e.target.value as "user" | "editor")
+                    }
+                  >
+                    <MenuItem value="user">User</MenuItem>
+                    <MenuItem value="editor">Monitor (global access)</MenuItem>
+                  </TextField>
+                  <Stack direction="row" spacing={1}>
+                    <IconAction
+                      label="Save account changes"
+                      disabled={
+                        editingOwnAccount || edit.isPending || !username
+                      }
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Save changes for ${selected.username}? This signs them out.`,
+                          )
+                        )
+                          edit.mutate();
+                      }}
+                    >
+                      <SaveOutlined />
+                    </IconAction>
+                  </Stack>
+                </>
+              )}
+            </>
+          )}
+          {(lookup.error || edit.error || remove.error || monitor.error) && (
             <Alert severity="error">
-              {(lookup.error || assign.error)?.message}
+              {
+                (lookup.error || edit.error || remove.error || monitor.error)
+                  ?.message
+              }
             </Alert>
           )}
-          {assign.isSuccess && (
+          {edit.isSuccess && (
             <Alert severity="success">
-              Role updated. The user must sign in again.
+              Account updated. The user must sign in again.
             </Alert>
+          )}
+          {remove.isSuccess && (
+            <Alert severity="success">Account deleted.</Alert>
+          )}
+          {monitor.isSuccess && (
+            <Alert severity="success">Monitor access updated.</Alert>
           )}
         </Stack>
       </Paper>

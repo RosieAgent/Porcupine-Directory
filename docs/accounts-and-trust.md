@@ -1,6 +1,6 @@
 # Accounts, authorization, and trust — v0.1
 
-Current deployment: approved `STAFF_AUTH_MODE=password_recent` requires password login/reverification within 15 minutes for staff actions and five minutes for account-security changes. Passkeys stay hidden. Roles, audit, saved-recovery prerequisites, revocation and recovery suspension remain. Admin-only account browsing and local-only mail preview are available. See [staff setup](staff-preview-setup.md).
+Current deployment: approved `STAFF_AUTH_MODE=password_recent` requires password login/reverification within 15 minutes for staff actions and five minutes for account-security changes. Passkeys stay hidden. Roles, audit, saved-recovery prerequisites, revocation and recovery suspension remain. Administrators can browse, edit and delete eligible non-administrator accounts from the web application; the existing global `editor` role is presented there as monitor access. Local-only mail preview is available. See [staff setup](staff-preview-setup.md).
 
 ## Product decisions
 
@@ -39,13 +39,15 @@ Password-setting forms (registration, invitation activation, phrase/email recove
 
 1. Open **http://localhost:4350/register**. Choose your own username and password; save the generated recovery phrase. Do not send secrets through chat.
 2. Save the recovery phrase and sign in with your password for the approved v0.1 policy. The preserved passkey policy requires explicitly enabling and registering/verifying that feature first.
-3. Run from the project directory, replacing `YOUR_USERNAME` with that exact username:
+3. From a trusted workstation, run the host-console promotion helper, replacing `YOUR_USERNAME` with that exact username:
 
    ```bash
-   sudo docker compose exec -T app node dist-server/server/admin-cli.js 'YOUR_USERNAME'
+   ssh -i ~/.ssh/porcupine-directory-production \
+     -l porcupine-deploy VPS_IP \
+     'bash -s -- YOUR_USERNAME' < deploy/promote-admin.sh
    ```
 
-4. Sign in again with your password. Administration can browse/search accounts and grant/revoke editors; recipients must save their phrase. Role changes invalidate affected sessions.
+4. Sign in again with your password. Administration can browse/search accounts, edit private usernames/display names, grant/revoke monitor access, and delete accounts that have no ownership or moderation records. Recipients must save their recovery phrase. Role and account changes invalidate affected sessions. Administrator accounts remain host-managed.
 
 The first public signup is **never** made administrator. No default password, shared admin key, email identity or account was created for the owner. Host console promotion/restoration writes an audit event. Protect host access and backups as root-of-trust credentials.
 

@@ -90,11 +90,125 @@ administration.get("/users", async (req, res) => {
 // Exact username lookup: no user directory or bookmarks exposed to editors.
 administration.get("/account", async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id,username,role,privileges_suspended AS "privilegesSuspended",(SELECT count(*)::int FROM passkeys WHERE account_id=accounts.id) AS "passkeyCount" FROM accounts WHERE username=$1`,
+    `SELECT id,username,alias,role,privileges_suspended AS "privilegesSuspended",(SELECT count(*)::int FROM passkeys WHERE account_id=accounts.id) AS "passkeyCount" FROM accounts WHERE username=$1`,
     [usernameSchema.parse(req.query.username)],
   );
   if (!rows[0]) throw new HttpError(404, "Account not found.");
   res.json(rows[0]);
+});
+administration.put("/users/:id", async (req, res) => {
+  const accountId = z.uuid().parse(req.params.id);
+  const data = z
+    .object({
+      username: usernameSchema,
+      alias: z
+        .string()
+        .trim()
+        .max(80)
+        .transform((value) => value || "Anonymous"),
+      role: z.enum(["user", "editor", "administrator"]),
+    })
+    .parse(req.body);
+  await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const { rows } = await client.query(
+      "SELECT id,username,alias,role,recovery_saved FROM accounts WHERE id=$1 FOR UPDATE",
+      [accountId],
+    );
+    const user = rows[0];
+    if (!user) throw new HttpError(404, "Account not found.");
+    if (user.id === req.account!.id)
+      throw new HttpError(400, "Edit your own account from Account security.");
+    if (user.role === "administrator" || data.role === "administrator")
+      throw new HttpError(
+        400,
+        "Administrator accounts are managed through the host console.",
+      );
+    const duplicate = await client.query(
+      "SELECT 1 FROM accounts WHERE username=$1 AND id<>$2",
+      [data.username, accountId],
+    );
+    if (duplicate.rowCount)
+      throw new HttpError(409, "That username is already in use.");
+    if (data.role === "editor" && user.role !== "editor") {
+      const keys = await client.query(
+        "SELECT 1 FROM passkeys WHERE account_id=$1",
+        [accountId],
+      );
+      if (
+        (staffAuthMode() === "passkey" && !keys.rowCount) ||
+        !user.recovery_saved
+      )
+        throw new HttpError(
+          400,
+          staffAuthMode() === "passkey"
+            ? "The user must save their recovery phrase and register a passkey first."
+            : "The user must save their recovery phrase first.",
+        );
+    }
+    const changed =
+      user.username !== data.username ||
+      user.alias !== data.alias ||
+      user.role !== data.role;
+    if (!changed) return;
+    await client.query(
+      `UPDATE accounts SET username=$2,alias=$3,role=$4,
+       privileges_suspended=CASE WHEN role<>$4 THEN false ELSE privileges_suspended END,
+       session_version=session_version+1 WHERE id=$1`,
+      [accountId, data.username, data.alias, data.role],
+    );
+    await client.query("DELETE FROM sessions WHERE sess->>'accountId'=$1", [
+      accountId,
+    ]);
+    await audit(client, req.account!.id, accountId, "account.updated");
+    if (user.role !== data.role)
+      await audit(
+        client,
+        req.account!.id,
+        accountId,
+        "role.assigned." + data.role,
+      );
+  });
+  res.json({ ok: true });
+});
+administration.delete("/users/:id", async (req, res) => {
+  const accountId = z.uuid().parse(req.params.id);
+  await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const { rows } = await client.query(
+      "SELECT id,username,role FROM accounts WHERE id=$1 FOR UPDATE",
+      [accountId],
+    );
+    const user = rows[0];
+    if (!user) throw new HttpError(404, "Account not found.");
+    if (user.id === req.account!.id)
+      throw new HttpError(400, "You cannot delete your own account here.");
+    if (user.role === "administrator")
+      throw new HttpError(
+        400,
+        "Administrator accounts are managed through the host console.",
+      );
+    const references = await client.query(
+      `SELECT
+        (SELECT count(*)::int FROM listings WHERE owner_id=$1) AS listings,
+        (SELECT count(*)::int FROM ownership_transfers
+          WHERE proposer_id=$1 OR recipient_id=$1 OR prior_owner_id=$1) AS transfers,
+        (SELECT count(*)::int FROM moderation_report_audit WHERE actor_id=$1) AS reports`,
+      [accountId],
+    );
+    const reference = references.rows[0];
+    if (reference.listings || reference.transfers || reference.reports)
+      throw new HttpError(
+        409,
+        "This account has ownership or moderation records. Reassign or resolve those records before deleting it.",
+      );
+    await audit(client, req.account!.id, accountId, "account.deleted");
+    await client.query("DELETE FROM sessions WHERE sess->>'accountId'=$1", [
+      accountId,
+    ]);
+    await client.query("DELETE FROM accounts WHERE id=$1", [accountId]);
+  });
+  res.json({ ok: true });
 });
 administration.put("/role", async (req, res) => {
   const data = z
