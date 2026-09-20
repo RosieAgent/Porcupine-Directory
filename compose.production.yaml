@@ -63,8 +63,10 @@ services:
       app:
         condition: service_healthy
     ports:
-      - "80:80"
-      - "443:443"
+      # Bind the public edge explicitly. This allows a private Tailscale
+      # listener to keep using 443 on the same host.
+      - "${PUBLIC_BIND_ADDRESS:?Set PUBLIC_BIND_ADDRESS in .env.production}:80:80"
+      - "${PUBLIC_BIND_ADDRESS:?Set PUBLIC_BIND_ADDRESS in .env.production}:443:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - porcupine-caddy-data:/data

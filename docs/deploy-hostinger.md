@@ -47,14 +47,17 @@ Allow SSH, HTTP, and HTTPS in both the Hostinger VPS firewall and the operating-
 
 ## 3. Create the production environment file
 
-On the VPS, create `/opt/porcupine-directory/.env.production` with mode `600`:
+On the VPS, create `/opt/porcupine-directory/.env.production` with mode `600`. The repository includes [`deploy/prepare-production-env.sh`](../deploy/prepare-production-env.sh), which generates URL-safe database passwords and a session secret on the VPS without printing them:
 
 ```bash
-install -o porcupine-deploy -g porcupine-deploy -m 0600 /dev/null /opt/porcupine-directory/.env.production
-nano /opt/porcupine-directory/.env.production
+ssh -i ~/.ssh/porcupine-directory-production \
+  -l porcupine-deploy VPS_IP \
+  'bash -s' < deploy/prepare-production-env.sh
 ```
 
-Start from [`deploy/production.env.example`](../deploy/production.env.example). Replace every placeholder. Generate the important secrets on the VPS and copy them into the file without sending them through chat:
+The script writes the production values and does not send the secrets through chat or store them in the repository. If values such as the public bind address or SMTP settings differ, edit the script inputs before running it or update the file through a trusted SSH session.
+
+If creating the file manually, start from [`deploy/production.env.example`](../deploy/production.env.example), replace every placeholder, and generate the important secrets on the VPS without sending them through chat:
 
 ```bash
 openssl rand -hex 32  # POSTGRES_PASSWORD
@@ -63,7 +66,7 @@ openssl rand -base64 48  # SESSION_SECRET
 openssl rand -hex 32  # EMAIL_ENCRYPTION_KEY, only if SMTP recovery is enabled
 ```
 
-Use `https://porcupinedirectory.com` for `APP_ORIGIN` and keep `TRUST_PROXY=1` because Caddy is the single trusted reverse proxy. Leave the SMTP fields blank until a real TLS SMTP provider is ready. The database URLs must use the matching passwords; URL-encode any password characters outside letters, numbers, `-`, and `_`.
+Use `https://porcupinedirectory.com` for `APP_ORIGIN`, set `PUBLIC_BIND_ADDRESS` to the VPS public IPv4 address, and keep `TRUST_PROXY=1` because Caddy is the single trusted reverse proxy for the public site. The explicit Caddy bind keeps private listeners such as Tailscale separate from public HTTPS. Leave the SMTP fields blank until a real TLS SMTP provider is ready. The database URLs must use the matching passwords; URL-encode any password characters outside letters, numbers, `-`, and `_`.
 
 ## 4. Configure the GitHub production environment
 
