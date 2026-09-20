@@ -1,0 +1,105 @@
+[
+  {
+    "id": "7bc76637-93bc-43a7-918f-1dd2f288f9bf",
+    "expectedName": "NH Liberty Alliance (NHLA)",
+    "expectedVersion": 2,
+    "reason": "Requested NHLA organization profile, researched from its official public pages. Preserves the existing entry URL and imported endorsements connection; no confirmation inferred.",
+    "patch": {
+      "kind": "organization",
+      "lifecycle": "existing",
+      "summary": "Volunteer-run New Hampshire organization focused on individual liberty through legislative research, civic participation and community events.",
+      "description": "NHLA describes itself as non-partisan and volunteer-run. Its work includes reviewing legislation, publishing the Gold Standard voting guide, Liberty Ratings, candidate support and civic involvement.\n\nThe organization offers membership, volunteering and events. Its official website links to a Facebook page, a separate Facebook group and an X account.\n\nThis is an independent directory profile, not an endorsement or an official NHLA service. The mailing address is not a confirmed walk-in location. The NHLA calendar is linked externally; its events are not automatically synchronized into this directory.",
+      "location": "New Hampshire",
+      "accessMode": "public",
+      "accessInstructions": "Browse the public website for research and events. Use the membership and volunteer pages to learn how to participate, or the organization’s general contact email for questions. Membership, event registration and social-group access are managed by NHLA or the destination service, under their own rules and privacy practices.",
+      "publicEmail": "info@nhliberty.org",
+      "publicPhone": "603-513-7180",
+      "publicAddress": "P.O. Box 4241, Manchester, NH 03108-4241 (mailing address; phone is voicemail)"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/",
+        "label": "Official website"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/about/",
+        "label": "About and public contacts"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/membership/",
+        "label": "Membership"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/volunteer/",
+        "label": "Volunteer opportunities"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/events/",
+        "label": "NHLA events and calendar"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/ratings/",
+        "label": "Liberty Ratings"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/gold-standard/latest/",
+        "label": "Latest Gold Standard"
+      },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/newsletter-signup/",
+        "label": "Newsletter signup"
+      },
+      {
+        "type": "facebook",
+        "url": "https://www.facebook.com/NHLiberty/",
+        "label": "NHLA Facebook page"
+      },
+      {
+        "type": "facebook",
+        "url": "https://www.facebook.com/groups/31845266648/",
+        "label": "Facebook group listed by NHLA"
+      },
+      { "type": "x", "url": "https://x.com/nhliberty", "label": "NHLA on X" },
+      {
+        "type": "website",
+        "url": "https://www.nhliberty.org/home/candidate-endorsements-and-results/",
+        "label": "Imported endorsements and results link"
+      }
+    ],
+    "sources": [
+      {
+        "label": "NHLA official homepage and public contact details",
+        "url": "https://www.nhliberty.org/",
+        "checkedAt": "2026-09-19T02:12:07Z"
+      },
+      {
+        "label": "NHLA organization description and social destinations",
+        "url": "https://www.nhliberty.org/about/",
+        "checkedAt": "2026-09-19T02:12:07Z"
+      },
+      {
+        "label": "NHLA membership",
+        "url": "https://www.nhliberty.org/membership/",
+        "checkedAt": "2026-09-19T02:12:07Z"
+      },
+      {
+        "label": "NHLA volunteering",
+        "url": "https://www.nhliberty.org/volunteer/",
+        "checkedAt": "2026-09-19T02:12:07Z"
+      },
+      {
+        "label": "NHLA events and external calendar",
+        "url": "https://www.nhliberty.org/events/",
+        "checkedAt": "2026-09-19T02:12:07Z"
+      }
+    ]
+  }
+]

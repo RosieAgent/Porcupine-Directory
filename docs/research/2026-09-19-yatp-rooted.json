@@ -1,0 +1,132 @@
+[
+  {
+    "id": "05587d94-51bd-4531-8a8b-d71d387a9497",
+    "expectedName": "You Are The Power",
+    "expectedVersion": 5,
+    "reason": "User-requested research of official mission, nonprofit status, programs and participation. Replace local/state teams with relevant controlled tags; no independent legal certification or human confirmation granted.",
+    "patch": {
+      "kind": "organization",
+      "summary": "National nonprofit advocacy organization helping individuals, families and charities respond to local government abuse, with volunteering and membership opportunities.",
+      "description": "You Are The Power describes itself as a 501(c)(3) nonprofit dedicated to human respect and protecting people from local government abuse. It combines public advocacy, volunteer organizing and policy-change efforts. Its programs include Family Reunification, Charity Defense, Civil Liberties and the Freedom Fund. The organization operates nationally; this entry is not a verified New Hampshire chapter. Its site offers free and paid membership options, volunteer opportunities, campaign information and a process for requesting help. A request does not guarantee that a case will be accepted. The Nonprofit tag reflects the organization's published information, not a directory certification of tax status.",
+      "tags": [
+        "Politics",
+        "Activism",
+        "IRL",
+        "Website",
+        "Nonprofit",
+        "Volunteer"
+      ],
+      "accessInstructions": "Use the official homepage's Get Involved menu to find Join Us and Volunteer, or Contact → Request Help for assistance. Membership has free and paid options; check current terms on the organization's site. Send sensitive case details only through its own request process, not directory entries or revision reasons. External registration and help forms may request personal information and follow that organization's privacy practices.",
+      "lifecycle": "existing"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.youarethepower.net/",
+        "label": "You Are The Power — official homepage",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "You Are The Power — official homepage",
+        "url": "https://www.youarethepower.net/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official mission and nonprofit statement",
+        "url": "https://www.youarethepower.net/about/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official advocacy programs",
+        "url": "https://www.youarethepower.net/our-programs/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official volunteer opportunities",
+        "url": "https://www.youarethepower.net/volunteer/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official membership options",
+        "url": "https://www.youarethepower.net/membership/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      }
+    ]
+  },
+  {
+    "id": "969f2bc3-9000-4e7d-bf69-344853543e27",
+    "expectedName": "Rooted Free",
+    "expectedVersion": 3,
+    "reason": "User supplied the official homepage. Research community offerings, Henniker location and required free membership; replace unsupported Signal/Membership tags with sourced topics and actual connections. No confirmation granted.",
+    "patch": {
+      "summary": "Henniker farm-based community offering workshops, retreats, creative activities and gatherings, with free membership required for participation.",
+      "description": "Rooted Free is a private, voluntary community based at Rooted Free Farm in Henniker, New Hampshire. Its website describes workshops in homesteading skills, movement and creative arts, alongside retreats and community gatherings such as circles, dances and picnics. It also offers traveling canning workshops, event hosting and private venue use. The community emphasizes personal and spiritual growth, privacy and voluntary participation. Membership is free and required for its offerings; individual events and services may have separate registration requirements or fees. Consult the organizers for current availability and participation terms.",
+      "url": "https://www.rootedfree.com/",
+      "location": "Henniker, NH",
+      "tags": [
+        "Learning",
+        "Self-Improvement/Health",
+        "IRL",
+        "Skills",
+        "Arts",
+        "Community Groups",
+        "Website",
+        "Facebook",
+        "Telegram"
+      ],
+      "accessMode": "private",
+      "accessInstructions": "On the official homepage, choose Membership, read the community's core values and use Become a Member. Membership is free and required for events and offerings; it does not mean every event or service is free. Check Current Events or Contact for registration, fees and access details before visiting. The website links to Facebook, Instagram and a Telegram invitation; joining a chat is not a substitute for the community's membership requirements. External forms and platforms have their own privacy practices; no registration data is collected here.",
+      "lifecycle": "existing"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.rootedfree.com/",
+        "label": "Rooted Free — official homepage",
+        "placement": "primary"
+      },
+      {
+        "type": "facebook",
+        "url": "https://www.facebook.com/rootedfree",
+        "label": "Rooted Free Facebook page",
+        "placement": "primary"
+      },
+      {
+        "type": "telegram",
+        "url": "https://t.me/+JcV8cYy3yBhiYmUx",
+        "label": "Telegram invitation linked by Rooted Free",
+        "placement": "primary"
+      },
+      {
+        "type": "instagram",
+        "url": "https://www.instagram.com/rootedfreenh",
+        "label": "Rooted Free Instagram",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Rooted Free — official community overview",
+        "url": "https://www.rootedfree.com/",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official membership requirements and core values",
+        "url": "https://www.rootedfree.com/membership",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official workshops and venue services",
+        "url": "https://www.rootedfree.com/services",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      },
+      {
+        "label": "Official Henniker location and social connections",
+        "url": "https://www.rootedfree.com/contact",
+        "checkedAt": "2026-09-19T15:26:39.000Z"
+      }
+    ]
+  }
+]

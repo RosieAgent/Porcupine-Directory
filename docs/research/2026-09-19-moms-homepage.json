@@ -1,0 +1,53 @@
+[
+  {
+    "id": "63ef0313-01d5-4e11-b064-e8a3785a3280",
+    "expectedName": "Moms For Liberty",
+    "expectedVersion": 3,
+    "reason": "Owner requested the national homepage as the main destination and new research from the official website. Retain past-workshop provenance; no owner confirmation or editor-review badge is granted.",
+    "patch": {
+      "url": "https://www.momsforliberty.org/",
+      "kind": "organization",
+      "summary": "National parental-rights advocacy organization offering membership, local chapters, education resources and events.",
+      "description": "Moms for Liberty describes itself as a national 501(c)(4) nonprofit focused on parental rights and education advocacy. Its website provides parent resources, training, events and a chapter finder. National membership is free and distinct from joining a local chapter. This entry represents the national organization, not a verified New Hampshire chapter. The original imported link describes a past workshop in Concord on January 30, 2026; it remains an additional historical resource, not current event registration.",
+      "location": "",
+      "accessInstructions": "Visit the official homepage and select Membership for national registration, or Chapters → Find my chapter for local participation. Registration takes place on the organization's own site and may request contact information; Porcupine Directory does not collect or forward that information. Confirm chapter availability and event requirements with the organization.",
+      "lifecycle": "existing"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.momsforliberty.org/",
+        "label": "Official homepage",
+        "placement": "primary"
+      },
+      {
+        "type": "website",
+        "url": "https://portal.momsforliberty.org/events/3236/",
+        "label": "Past Concord workshop — January 30, 2026",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Moms for Liberty — official homepage",
+        "url": "https://www.momsforliberty.org/",
+        "checkedAt": "2026-09-19T04:02:26.000Z"
+      },
+      {
+        "label": "Official membership and chapter participation information",
+        "url": "https://www.momsforliberty.org/membership/",
+        "checkedAt": "2026-09-19T04:02:26.000Z"
+      },
+      {
+        "label": "Official chapter finder (not independent NH chapter verification)",
+        "url": "https://www.momsforliberty.org/chapters/",
+        "checkedAt": "2026-09-19T04:02:26.000Z"
+      },
+      {
+        "label": "Historical workshop source from the prior revision",
+        "url": "https://portal.momsforliberty.org/events/3236/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  }
+]

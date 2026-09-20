@@ -1,3 +1,4 @@
+name: porcupine-directory
 services:
   db:
     image: postgres:16-alpine
@@ -7,7 +8,7 @@ services:
       POSTGRES_USER: porcupine
       POSTGRES_PASSWORD: porcupine
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5438:5432"
     volumes:
       - porcupine-postgres:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
@@ -26,9 +27,51 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://porcupine:porcupine@db:5432/porcupine_directory
-      FSP_CALENDAR_URL: https://community.fsp.org/calendar/
+      FSP_SYNC_ENABLED: ${FSP_SYNC_ENABLED:-true}
+      PUBLICATION_SYNC_ENABLED: ${PUBLICATION_SYNC_ENABLED:-true}
+      DONATION_BITCOIN_ADDRESS: ${DONATION_BITCOIN_ADDRESS:-}
+      DONATION_LIGHTNING_ADDRESS: ${DONATION_LIGHTNING_ADDRESS:-}
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:4350}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      SUBMISSION_POLICY: ${SUBMISSION_POLICY:-published}
+      PASSKEYS_ENABLED: ${PASSKEYS_ENABLED:-false}
+      STAFF_AUTH_MODE: ${STAFF_AUTH_MODE:-passkey}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_MODE: ${SMTP_MODE:-smtp}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_ENCRYPTION_KEY: ${EMAIL_ENCRYPTION_KEY:-}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:4350:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31.1
+    profiles: [mail-preview]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8027:8025"
+    environment:
+      MP_MAX_MESSAGES: 100
+      MP_MAX_AGE: 1h
+      MP_ALLOWED_HOSTS: localhost,127.0.0.1,mailpit
+      MP_DISABLE_VERSION_CHECK: "true"
+      MP_SMTP_DISABLE_RDNS: "true"
+      MP_BLOCK_REMOTE_CSS_AND_FONTS: "true"
+    # No SMTP host port, relay configuration or persistent mail volume.
 
 volumes:
   porcupine-postgres:

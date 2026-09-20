@@ -6,3 +6,5 @@ dist-server/
 !.env.example
 *.log
 .DS_Store
+data/
+test-results/

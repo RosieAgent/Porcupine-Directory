@@ -1,0 +1,52 @@
+[
+  {
+    "id": "99c0ed8b-6f88-4930-b4f4-00412321844f",
+    "expectedName": "The Independents w/ Carla Gericke",
+    "expectedVersion": 2,
+    "reason": "Replace the imported single-episode destination with the verified creator-owned series playlist and summarize official channel/show sources. Keep the original episode as an additional resource; do not grant human confirmation.",
+    "patch": {
+      "url": "https://www.youtube.com/playlist?list=PL6rnEwExHzQRW2TQbBpCn24n6q2fgcv89",
+      "summary": "Carla Gericke's video and cable-access series exploring New Hampshire politics, liberty, government transparency and independent thinking.",
+      "description": "The Independents is a recurring show hosted by Carla Gericke on her YouTube channel, The Art of Independence. The series discusses New Hampshire politics, civil liberties, government transparency and personal independence from a liberty-oriented perspective. Its YouTube playlist brings the episodes together; the creator describes the program as a weekly cable-access show aimed at New Hampshire's undeclared voters. Her website also maintains a dedicated episode archive with written introductions and embedded videos. This entry represents the series, not an individual episode or a separate membership group.",
+      "accessInstructions": "Open the YouTube series playlist to browse episodes. Carla Gericke's website also has a The Independents archive. Viewing happens on the creator's website or YouTube; Porcupine Directory does not require an account or load an embedded player here.",
+      "lifecycle": "existing"
+    },
+    "connections": [
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/playlist?list=PL6rnEwExHzQRW2TQbBpCn24n6q2fgcv89",
+        "label": "The Independents — series playlist",
+        "placement": "primary"
+      },
+      {
+        "type": "website",
+        "url": "https://www.carlagericke.com/",
+        "label": "Carla Gericke — official website",
+        "placement": "primary"
+      },
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/watch?v=9Ezz8gEwE_U&list=PL6rnEwExHzQRW2TQbBpCn24n6q2fgcv89",
+        "label": "Original imported episode — The Day the GOP Killed Liberty",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "The Independents — creator-owned YouTube playlist",
+        "url": "https://www.youtube.com/playlist?list=PL6rnEwExHzQRW2TQbBpCn24n6q2fgcv89",
+        "checkedAt": "2026-09-19T14:57:59.000Z"
+      },
+      {
+        "label": "Carla Gericke — official YouTube channel",
+        "url": "https://www.youtube.com/channel/UCA-qdY1ug-fsvbCxR23iaNg",
+        "checkedAt": "2026-09-19T14:57:59.000Z"
+      },
+      {
+        "label": "The Independents — official episode archive",
+        "url": "https://www.carlagericke.com/category/the-independents/",
+        "checkedAt": "2026-09-19T14:57:59.000Z"
+      }
+    ]
+  }
+]

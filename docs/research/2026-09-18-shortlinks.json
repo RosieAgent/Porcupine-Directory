@@ -1,0 +1,916 @@
+[
+  {
+    "id": "c2a05405-2e41-4c08-bc2a-3e399ad97944",
+    "expectedName": "Bum Bus",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/ytjktb4z",
+        "type": "signal",
+        "label": "Bum Bus"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/ytjktb4z",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "c0ed9af8-5be9-46ec-9447-52c842bd712f",
+    "expectedName": "Chat: Events/Groups for Porcs",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2yzv4nz2",
+        "type": "signal",
+        "label": "Chat: Events/Groups for Porcs"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2yzv4nz2",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "01864d85-ca35-4c93-8a72-a9d76f0d1392",
+    "expectedName": "College Liberty",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2vfejm6n",
+        "type": "signal",
+        "label": "College Liberty"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2vfejm6n",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "77e1c219-2e88-49a4-8a56-5b72d7691b4d",
+    "expectedName": "Concentrating Better",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/3nwrxr67",
+        "type": "signal",
+        "label": "Concentrating Better"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/3nwrxr67",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "b48622cf-5542-4fd2-9051-55ba418742aa",
+    "expectedName": "Concentrating Better",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/vrjrd7c8",
+        "type": "signal",
+        "label": "Concentrating Better"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/vrjrd7c8",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "9a7e6166-f0bd-4315-9c3e-b3130ed81faa",
+    "expectedName": "Connecting Folks Together",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/54mvxdpn",
+        "type": "signal",
+        "label": "Connecting Folks Together"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/54mvxdpn",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "17c2b0bb-2cfc-4014-9adc-334990cf37ee",
+    "expectedName": "Converting Better",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2rdc9b2b",
+        "type": "signal",
+        "label": "Converting Better"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2rdc9b2b",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "4b7bf09c-ba7d-4ddc-977d-d86c6f957573",
+    "expectedName": "Damn! That’s Funny",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/55bhv76w",
+        "type": "signal",
+        "label": "Damn! That’s Funny"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/55bhv76w",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "5c50c0bf-531a-48ec-b292-08a25badc845",
+    "expectedName": "Die Free",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/45r2sdwn",
+        "type": "signal",
+        "label": "Die Free"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/45r2sdwn",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "415370fc-7ce5-4e69-a37a-bb3c5be27af2",
+    "expectedName": "Directory: Find My Group",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/uh85w9f9",
+        "type": "signal",
+        "label": "Directory: Find My Group"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/uh85w9f9",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "2a193762-5ece-478d-80f3-3a9e58421212",
+    "expectedName": "Free State Project",
+    "expectedVersion": 3,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/7w5vz3uk",
+        "type": "facebook",
+        "label": "Imported FSP Facebook redirect",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.fsp.org/learn/mission/",
+        "label": "FSP mission and nonprofit description",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "url": "https://www.fsp.org/connect/social-media/",
+        "label": "FSP official social accounts",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "url": "https://www.fsp.org/connect/find-your-people/",
+        "label": "FSP community links and independent-group disclaimer",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "url": "https://www.fsp.org/connect/contact/",
+        "label": "FSP public contact information",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "url": "https://www.fsp.org/",
+        "label": "FSP event and forum links",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "label": "TinyURL redirect check — www.facebook.com host only; membership/content not checked",
+        "url": "https://tinyurl.com/7w5vz3uk",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "2f935093-8255-4eb0-bd1f-f184d20ea024",
+    "expectedName": "FreeVille - Free Town Project 2",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2zy4e5hp",
+        "type": "signal",
+        "label": "FreeVille - Free Town Project 2"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2zy4e5hp",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "8f022040-cdce-4858-b863-304c11c6ca2e",
+    "expectedName": "Gambling Freedom",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/3kxk2sx7",
+        "type": "signal",
+        "label": "Gambling Freedom"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/3kxk2sx7",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "4e34eeac-a891-47b8-9b05-506f9ecd48ed",
+    "expectedName": "Granite Ruck Club",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/GRUCK-NH",
+        "type": "signal",
+        "label": "Granite Ruck Club"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/GRUCK-NH",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "b75c7218-aad1-4f97-8b03-f255796ee731",
+    "expectedName": "History of NH",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/3wtsaaz9",
+        "type": "signal",
+        "label": "History of NH"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/3wtsaaz9",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "054c9300-93e8-4432-9b9d-9907507ce0d0",
+    "expectedName": "History Of The World",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2f65jj7c",
+        "type": "signal",
+        "label": "History Of The World"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2f65jj7c",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "9b3e15f5-5285-4606-b150-1dd180beb89f",
+    "expectedName": "Interfaith Switching Station",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/ytr3wydt",
+        "type": "signal",
+        "label": "Interfaith Switching Station"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/ytr3wydt",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "b25c4107-b5db-40d3-ad0f-31a801aaf4ea",
+    "expectedName": "IRL Debate Warmup",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/yj39xjs6",
+        "type": "signal",
+        "label": "IRL Debate Warmup"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/yj39xjs6",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "7853cee3-0563-4e25-9214-c25827153bd6",
+    "expectedName": "Israel, Palestine, or You",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2wrumzt7",
+        "type": "signal",
+        "label": "Israel, Zionism, Arabs, and You"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2wrumzt7",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "78558909-3a51-4f9a-bc11-ac5f4f6e499b",
+    "expectedName": "Libertarian Mecca",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/t2eap6cv",
+        "type": "signal",
+        "label": "Libertarian Mecca"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/t2eap6cv",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "a45b8747-3022-4bf2-b244-65861f63b796",
+    "expectedName": "Liberty Bus Tours",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/2nyehhyn",
+        "type": "signal",
+        "label": "Liberty Bus Tours"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/2nyehhyn",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "1f12fcb7-76e4-444b-a97a-d37a5e5c1266",
+    "expectedName": "Liberty Debate Planning",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {
+      "kind": "channel"
+    },
+    "connections": [
+      {
+        "url": "https://tinyurl.com/f4xvsafe",
+        "type": "signal",
+        "label": "Liberty Debate Planning"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/f4xvsafe",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "f1a3f058-1e45-4aea-9d05-b12cbeebb0dc",
+    "expectedName": "Liberty Tall Ship Sing & Sail",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/ynxbuupf",
+        "type": "signal",
+        "label": "Liberty Tall Ship Sing & Sail"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/ynxbuupf",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "406d56eb-9c95-4bd1-88fe-ff67c929a8ce",
+    "expectedName": "Mean Tweets Discussion",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/mr29wre4",
+        "type": "signal",
+        "label": "Mean Tweets Discussion"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/mr29wre4",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "4f8297c8-6c09-44fc-9ce3-6d142998fbe8",
+    "expectedName": "Media Coverage of LibHomeland",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/4hxv97fp",
+        "type": "signal",
+        "label": "Media Coverage of LibHomeland"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/4hxv97fp",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "23d53f65-65c2-4434-b8c6-bcdcd5ebf032",
+    "expectedName": "Media Coverage of the Free State",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/4hxv97fp",
+        "type": "signal",
+        "label": "Media Coverage of the Free State"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/4hxv97fp",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "c7e37a82-93b1-4ead-a4f7-a75508df9661",
+    "expectedName": "Monday Manumissions",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {
+      "kind": "channel"
+    },
+    "connections": [
+      {
+        "url": "https://tinyurl.com/4h524jb2",
+        "type": "signal",
+        "label": "Monday Manumissions"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/4h524jb2",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "feab309f-60f3-47e3-970f-58bc3cadf38b",
+    "expectedName": "NH Campus Carry Activism HB1793",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/Campus-Carry-Activism",
+        "type": "signal",
+        "label": "NH Campus Carry Activism"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/Campus-Carry-Activism",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "11e1b7fe-1387-477a-94ea-f98766549c57",
+    "expectedName": "NH Metal Youth Group",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/Nh-metal",
+        "type": "signal",
+        "label": "NH Metal Youth Group"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/Nh-metal",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "fd7d28be-ab7b-431c-9d42-5b548fa9c06d",
+    "expectedName": "NoChat:Events for Porcs",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/mrxkxdta",
+        "type": "signal",
+        "label": "NoChat:Events for Porcs"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/mrxkxdta",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "e1d8bf47-acd4-4ceb-929d-dd2cd0924dd5",
+    "expectedName": "NoChat:Freecoast Events",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {
+      "kind": "channel"
+    },
+    "connections": [
+      {
+        "url": "https://tinyurl.com/42rf875t",
+        "type": "signal",
+        "label": "NoChat:Freecoast Events"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/42rf875t",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "d6e206d3-a232-4276-9a6b-4b3ff885fda0",
+    "expectedName": "Personal Growth Liberty",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/mv64rxab",
+        "type": "signal",
+        "label": "Personal Growth Liberty"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/mv64rxab",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "ba179286-2ecb-4a1d-8f95-1b4aa8427625",
+    "expectedName": "Porc Anything Goes",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/yb3uvytj",
+        "type": "signal",
+        "label": "Porc Anything Goes"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/yb3uvytj",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "d214c624-0abb-4fae-87eb-23891f50c9ab",
+    "expectedName": "Porcupine Connection",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/3nwrxr67",
+        "type": "signal",
+        "label": "Porcupine Connection"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/3nwrxr67",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "a03807e3-6a52-4ddc-8f95-5d2f285046a0",
+    "expectedName": "Pro Football Lovers",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/3pykvky3",
+        "type": "signal",
+        "label": "Pro Football Lovers"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/3pykvky3",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "eb42ecc6-f71b-40e6-8ace-8b2aa6cc5627",
+    "expectedName": "Progressive State Project",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/58wxnzf2",
+        "type": "signal",
+        "label": "Progressive State Project"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/58wxnzf2",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "ed8aac8a-03a5-431c-a1c4-99477a975bdf",
+    "expectedName": "Seacoast Meet n Ride Sharing",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/Seacoast-meet-and-ride-share",
+        "type": "signal",
+        "label": "Seacoast Meet n Ride Sharing"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/Seacoast-meet-and-ride-share",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "68f5f419-9a6b-42c2-98ea-b021c92668fd",
+    "expectedName": "Somersworth",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/mtdffxha",
+        "type": "signal",
+        "label": "Somersworth"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/mtdffxha",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "3bde5fed-90de-4f0c-9f48-fe17d86c51af",
+    "expectedName": "State Swap",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/4ymkyday",
+        "type": "signal",
+        "label": "State Swap"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/4ymkyday",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "f9f50d53-51cb-46db-846a-8bb228b2c389",
+    "expectedName": "State Swap",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/4ymkyday",
+        "type": "signal",
+        "label": "State Swap"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/4ymkyday",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "ba1393a8-087c-46e8-8feb-20efa80977e0",
+    "expectedName": "The Convivium",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/NHRETVRN",
+        "type": "signal",
+        "label": "https://tinyurl.com/NHRETVRN"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/NHRETVRN",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "7066620f-d635-4e8b-a500-6fbe3aac162b",
+    "expectedName": "Ultra NH Christian Liberty",
+    "expectedVersion": 2,
+    "reason": "Reviewed TinyURL HTTP 301 Location headers on 2026-09-19 UTC; destination host establishes connection platform only. Destination chats were not fetched or joined. Original URLs and IDs retained; no admission or content confirmation implied.",
+    "patch": {},
+    "connections": [
+      {
+        "url": "https://tinyurl.com/Ultra-NH-Christian-Liberty",
+        "type": "signal",
+        "label": "https://tinyurl.com/Ultra-NH-Christian-Liberty"
+      }
+    ],
+    "sources": [
+      {
+        "label": "TinyURL redirect check — signal.group host only; membership/content not checked",
+        "url": "https://tinyurl.com/Ultra-NH-Christian-Liberty",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  }
+]

@@ -14,18 +14,33 @@ CREATE TABLE IF NOT EXISTS listings (
   access_instructions TEXT NOT NULL DEFAULT '',
   source_name TEXT NOT NULL DEFAULT 'Community submission',
   source_url TEXT,
+  source_key TEXT,
+  source_item_id TEXT,
+  imported_at TIMESTAMPTZ,
+  links JSONB NOT NULL DEFAULT '[]',
+  search_vector TSVECTOR,
   status TEXT NOT NULL DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'published', 'archived')),
   last_confirmed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (source_key, source_item_id)
 );
 
 CREATE INDEX IF NOT EXISTS listings_status_idx ON listings (status);
 CREATE INDEX IF NOT EXISTS listings_kind_idx ON listings (kind);
 CREATE INDEX IF NOT EXISTS listings_access_mode_idx ON listings (access_mode);
-CREATE INDEX IF NOT EXISTS listings_search_idx ON listings USING GIN (
-  to_tsvector('english', coalesce(name, '') || ' ' || coalesce(summary, '') || ' ' || coalesce(description, '') || ' ' || array_to_string(tags, ' '))
-);
+CREATE OR REPLACE FUNCTION listings_search_update() RETURNS trigger AS $$
+BEGIN
+  NEW.search_vector := to_tsvector('pg_catalog.english',
+    coalesce(NEW.name, '') || ' ' || coalesce(NEW.summary, '') || ' ' ||
+    coalesce(NEW.description, '') || ' ' || coalesce(NEW.location, '') || ' ' ||
+    coalesce(array_to_string(NEW.tags, ' '), ''));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE OR REPLACE TRIGGER listings_search_trigger BEFORE INSERT OR UPDATE ON listings
+FOR EACH ROW EXECUTE FUNCTION listings_search_update();
+CREATE INDEX IF NOT EXISTS listings_search_idx ON listings USING GIN (search_vector);
 
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -12,5 +12,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/dist-server ./dist-server
+COPY db/migrations ./db/migrations
 EXPOSE 3000
-CMD ["node", "dist-server/index.js"]
+USER node
+CMD ["node", "dist-server/server/index.js"]

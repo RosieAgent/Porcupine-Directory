@@ -1,0 +1,554 @@
+[
+  {
+    "id": "d66bcf32-654f-491e-b46e-27b366a595c5",
+    "expectedName": "603 Alliance",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire civic and candidate-training resource with workshops, issue briefings and election-related information.",
+      "description": "The 603 Alliance website provides training and events for people interested in New Hampshire civic and political participation, including candidate and school-board training. Its news and events sections publish program announcements. Check the organizer's current schedule and registration requirements directly.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://603alliance.org/",
+        "label": "603 Alliance",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "603 Alliance — public publisher information",
+        "url": "https://603alliance.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "4c27b877-1e74-4649-9c22-f31825ac7a27",
+    "expectedName": "Anie’s Hive",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Peterborough learning and parenting-support business offering children's programs and a family community space.",
+      "description": "Anie's Hive offers children's learning programs and parenting support, with an emphasis on curiosity-led learning and a connected family community. The website includes program information, booking, parenting support and guidance for a first visit. Contact the business for current program availability and arrangements; a public website does not mean drop-in access to every activity.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "kind": "business",
+      "location": "Peterborough, NH",
+      "publicEmail": "anieshive@protonmail.com",
+      "publicPhone": "802-289-0926"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.anieshive.org/",
+        "label": "Anie’s Hive",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Anie’s Hive — public publisher information",
+        "url": "https://www.anieshive.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      },
+      {
+        "label": "Anie's Hive — public business contact",
+        "url": "https://www.anieshive.org/contact-us",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      },
+      {
+        "label": "Anie's Hive — first visit",
+        "url": "https://www.anieshive.org/your-first-visit",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "61c834e7-bebc-4d2a-bfc6-dac560c927f1",
+    "expectedName": "Born Free Family",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire birth-support services, childbirth preparation and educational resources for families.",
+      "description": "Born Free Family offers doula support, prenatal preparation, postpartum support and a birth-preparation course, alongside educational resources and classes. Its service page says it is accepting doula clients for 2026 and describes midwifery services as a planned 2027 offering, not a currently verified service. Confirm current services, qualifications and availability directly. The imported description referred to a Signal chat, but no verified public invitation was found; use the business website to inquire.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "kind": "business",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.bornfreefamily.com/",
+        "label": "Born Free Family",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Born Free Family — public publisher information",
+        "url": "https://www.bornfreefamily.com/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      },
+      {
+        "label": "Birth support — current doula offering and future midwifery plan",
+        "url": "https://www.bornfreefamily.com/birthsupport",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "818ab895-aece-4cda-a92d-8f0a0baa7f99",
+    "expectedName": "Citizens Alliance of New Hampshire",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Public New Hampshire lawmaker-pledge, legislative-standings and candidate-information resource.",
+      "description": "The Citizens Alliance of New Hampshire website publishes its lawmaker pledge, legislative standings, candidate surveys and endorsements. Visitors can browse these materials or use the organization's own contact and action pages. Ratings and endorsements belong to the publisher; they are not Porcupine Directory rankings or confirmation badges. External signup forms request personal information under the publisher's privacy policy.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.citizensalliancenh.org/",
+        "label": "Citizens Alliance of New Hampshire",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Citizens Alliance of New Hampshire — public publisher information",
+        "url": "https://www.citizensalliancenh.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "ce5b7aef-889c-4f4f-908d-07f0c6ae12fd",
+    "expectedName": "Dennis Pratt Free",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Public X commentary about libertarian ideas, ethics and New Hampshire's Free State community.",
+      "description": "A link to the existing public publishing account DennisPrattFree on X. Its profile and posts discuss libertarian philosophy and the Free State community. X may require sign-in for some content. This is a publishing-resource entry, not a personal biography, endorsement, account-owner confirmation or permission to collect information about followers.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "x",
+        "url": "https://x.com/DennisPrattFree",
+        "label": "Dennis Pratt Free",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Dennis Pratt Free — public publisher information",
+        "url": "https://x.com/DennisPrattFree",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "16c1ebb6-9a65-451b-9ce1-ea20c07a7841",
+    "expectedName": "EdOpt",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire education-options directory, provider map and free guidance for families exploring learning choices.",
+      "description": "EdOpt helps families explore public, private, charter, homeschool, non-traditional and online education options. Its website provides a provider map, explanations of learning approaches, family consultations, articles and education events. Contact EdOpt directly for current assistance; the directory does not collect information about children or reproduce family consultation records.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://edopt.org/",
+        "label": "EdOpt",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "EdOpt — public publisher information",
+        "url": "https://edopt.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "5887a810-c800-4d16-8d85-a9d83c1bd7b5",
+    "expectedName": "Foundation for Applied Conservative Leadership",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Grassroots political-organizing training, public introductory material and information about attending or hosting a school.",
+      "description": "FACL provides training in political organizing and citizen advocacy. Its website explains its approach, lists training schools and offers information for prospective hosts. This is a national training resource, not a verified local New Hampshire chapter. Check the provider for current locations, registration and course requirements.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://facl-training.org/",
+        "label": "Foundation for Applied Conservative Leadership",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Foundation for Applied Conservative Leadership — public publisher information",
+        "url": "https://facl-training.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "133752c5-f554-46a1-8db7-472ebab5f77f",
+    "expectedName": "Free State Doc",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Documentary project exploring life in New Hampshire and the Free State community, with a public sample video.",
+      "description": "The Free State documentary website presents a work-in-progress film about New Hampshire residents and the Free State movement. It includes a sample video and information about supporting production. A finished film, release date and distribution availability were not established from the reviewed page; check the project's website for updates.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.freestatedoc.com/",
+        "label": "Free State Doc",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Free State Doc — public publisher information",
+        "url": "https://www.freestatedoc.com/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "398fd8b9-1e0c-42a3-aa06-5990a88af7be",
+    "expectedName": "Free State Food Network",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Membership-based network linking New Hampshire food producers, food businesses and the wider community.",
+      "description": "The Free State Food Network describes itself as a voluntary trade association for freedom-minded food professionals in New Hampshire. Its goals include collaboration, sharing practices and connecting producers with the community. The website also describes a Food Freedom Guide featuring participating businesses and farms. Contact the network for membership and current guide availability; old guide issues are not a guarantee of current business details.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://freestatefood.net/about/",
+        "label": "Free State Food Network",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Free State Food Network — public publisher information",
+        "url": "https://freestatefood.net/about/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "8f5ef7e8-f533-4379-ba61-8a4b2b2a6274",
+    "expectedName": "Metamodernism Uncensored",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Podcast conversations and commentary on philosophy, culture, politics, faith and meaning.",
+      "description": "Metamodernism Uncensored is a podcast by Sean Dempsey. The publisher's Spotify page offers its episode archive and describes discussion of life beyond postmodernism, cultural tensions and competing ideas. Follow the show link to browse current episodes. The directory does not independently verify claims made in individual episodes or track listening.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://open.spotify.com/show/033qlG8fbzlrV9aiP31ywX",
+        "label": "Metamodernism Uncensored",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Metamodernism Uncensored — public publisher information",
+        "url": "https://open.spotify.com/show/033qlG8fbzlrV9aiP31ywX",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "63ef0313-01d5-4e11-b064-e8a3785a3280",
+    "expectedName": "Moms For Liberty",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Imported training resource linking to a past Moms for Liberty workshop in Concord, held January 30, 2026.",
+      "description": "The imported destination is the Winning Workshop event page, not a general local chapter homepage. It describes campaign messaging, outreach and grassroots-organizing training at Upham Walker House in Concord on January 30, 2026. That date has passed. The page is retained as historical context; it should not be treated as a current event or proof of an active New Hampshire chapter. A chapter-specific listing needs a verified chapter source.",
+      "lifecycle": "existing",
+      "accessInstructions": "This destination describes a past workshop, not current registration. Consult the publisher for current programs.",
+      "location": "Concord, NH"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://portal.momsforliberty.org/events/3236/",
+        "label": "Past workshop — January 30, 2026",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Moms For Liberty — public publisher information",
+        "url": "https://portal.momsforliberty.org/events/3236/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "6b8cbe01-fb11-4f14-9c6c-83f2f4c58e2c",
+    "expectedName": "New Hampshire Firearms Coalition",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire firearms-policy advocacy resource with legislative updates, membership information and public alerts.",
+      "description": "The New Hampshire Firearms Coalition website publishes its mission, legislative commentary and advocacy updates. It offers membership information, email alerts and links for clubs and businesses. Check the publisher for current information; its political positions and assessments are the organization's own and are not independent legal guidance from this directory.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://nhfc-ontarget.org/about-us/",
+        "label": "New Hampshire Firearms Coalition",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "New Hampshire Firearms Coalition — public publisher information",
+        "url": "https://nhfc-ontarget.org/about-us/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "83771695-93d4-4665-9ae7-90ea853e5129",
+    "expectedName": "NH Blockchain Council",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire blockchain education, networking and policy resource with public industry-event calendars.",
+      "description": "The New Hampshire Blockchain Council connects technology professionals, enthusiasts and policymakers through education, networking and advocacy. Its website provides local and global industry-event calendars, involvement options and membership information. The public event listings do not require membership. This directory has not added those calendars as synchronized event sources.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://nhblockchaincouncil.org/",
+        "label": "NH Blockchain Council",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "NH Blockchain Council — public publisher information",
+        "url": "https://nhblockchaincouncil.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "e2f79683-db6f-439b-a239-ffa2ace3de14",
+    "expectedName": "NH Family Justice",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Family-court advocacy, educational workshops and community resources for New Hampshire families.",
+      "description": "New Hampshire Family Justice provides educational material, workshops and one-to-one advocacy informed by local experience. Its website includes resources, meeting announcements and a contact form. The organization explicitly says it is not legal counsel and does not provide specific legal assistance. Contact it directly about current support; do not submit private family or court information to this public directory.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://nhfamilyjustice.org/",
+        "label": "NH Family Justice",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "NH Family Justice — public publisher information",
+        "url": "https://nhfamilyjustice.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "f8d2630f-89af-4308-9117-9bc9a0ac9ccc",
+    "expectedName": "Porcupine Report",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Free State Project news and conversations with liberty builders, available on YouTube and as a podcast.",
+      "description": "The Porcupine Report is the Free State Project's recurring show hosted by Eric Brakey, discussing news from New Hampshire and conversations with people building liberty-oriented projects. Use the FSP YouTube channel for videos or the show's podcast page for audio. Recent titles below come from the publisher's podcast feed and can include special editions. Publication activity is distinct from owner confirmation or editor review.",
+      "lifecycle": "existing",
+      "accessInstructions": "Open the FSP YouTube channel for videos. The show's full video playlist and Spotify audio show are under Additional resources. Recent podcast releases are listed below.",
+      "url": "https://www.youtube.com/@FreeStateProjectNH"
+    },
+    "connections": [
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/@FreeStateProjectNH",
+        "label": "FSP YouTube channel",
+        "placement": "primary"
+      },
+      {
+        "type": "website",
+        "url": "https://www.fsp.org/porcreport/",
+        "label": "Official show page",
+        "placement": "primary"
+      },
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/playlist?list=PLDwk-SaLX7Ddd9QW9EvlymMvp0Y7gjNtJ",
+        "label": "Porcupine Report video archive",
+        "placement": "additional"
+      },
+      {
+        "type": "other",
+        "url": "https://open.spotify.com/show/3z0Ea2iwYJWl1Es0p87hCB",
+        "label": "Porcupine Report on Spotify",
+        "placement": "additional"
+      },
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/watch?v=jmhnV2ujTlg&list=PLDwk-SaLX7Ddd9QW9EvlymMvp0Y7gjNtJ",
+        "label": "Imported episode #113 (archive)",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Porcupine Report — public publisher information",
+        "url": "https://www.fsp.org/porcreport/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      },
+      {
+        "label": "FSP — official channel and Spotify show links",
+        "url": "https://www.fsp.org/connect/social-media/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      },
+      {
+        "label": "Publisher podcast feed — episode titles and dates",
+        "url": "https://anchor.fm/s/72228cd4/podcast/rss",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "22fbbafa-b5da-4989-a9bf-84c3226dcf82",
+    "expectedName": "Seacoast Republican Women",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "Seacoast civic-participation resource with chapter information, membership options and links to events.",
+      "description": "The Seacoast Republican Women page on the New Hampshire Federation of Republican Women website explains the chapter and its membership options, including associate and younger-member categories. It links to membership registration and the chapter's Facebook page. Consult the chapter for current meeting arrangements and requirements rather than relying on imported event or leadership information.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "Seacoast"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.nhfrw.org/seacoast-republican-women",
+        "label": "Seacoast Republican Women",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Seacoast Republican Women — public publisher information",
+        "url": "https://www.nhfrw.org/seacoast-republican-women",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "ff893c98-db1e-4be0-a840-97c6cacf7831",
+    "expectedName": "Women's Defense League",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "New Hampshire women's firearms-training, safety-event and Second Amendment advocacy resource.",
+      "description": "The Women's Defense League website describes women-focused training and grassroots advocacy in New Hampshire. It publishes class and event announcements, membership information and policy commentary. Check the organizer for current dates, prerequisites and registration; the directory does not provide firearms instruction or confirm course availability.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices.",
+      "location": "New Hampshire",
+      "url": "https://wdlnh.org/"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://wdlnh.org/",
+        "label": "Women's Defense League",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Women's Defense League — public publisher information",
+        "url": "https://wdlnh.org/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  },
+  {
+    "id": "05587d94-51bd-4531-8a8b-d71d387a9497",
+    "expectedName": "You Are The Power",
+    "expectedVersion": 2,
+    "reason": "Public source research requested by the site owner: improve description and participation guidance, retaining imported links and history. Not owner confirmation or editor review.",
+    "patch": {
+      "summary": "National advocacy resource with public campaigns, membership information and an external help-request process.",
+      "description": "You Are The Power describes a nationwide advocacy network assisting people in disputes involving local government. Its website provides campaign information, ways to get involved and a help-request process. This is a national resource, not a verified New Hampshire chapter or a promise that a particular case will be accepted. Send any sensitive case details directly through the organization's own channels, not this directory.",
+      "lifecycle": "existing",
+      "accessInstructions": "Use the linked publisher website for current information and contact or participation options. External services have their own privacy practices."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.youarethepower.net/",
+        "label": "You Are The Power",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "You Are The Power — public publisher information",
+        "url": "https://www.youarethepower.net/",
+        "checkedAt": "2026-09-19T03:24:59.726Z"
+      }
+    ]
+  }
+]

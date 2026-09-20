@@ -1,0 +1,71 @@
+[
+  {
+    "id": "cf45f0f4-6128-4d73-aee4-ef4f3410590e",
+    "expectedName": "Northwoods Wealth Management",
+    "expectedVersion": 2,
+    "reason": "Broad business-website review requested by the owner; descriptive public service/contact information, not investment advice or independent credential confirmation.",
+    "patch": {
+      "summary": "Financial-consulting and asset-management business with public service, pricing and disclosure information.",
+      "description": "Northwoods Wealth Management offers financial consulting and asset management. Its website also describes planning offerings, pricing, disclosures and ways to request a consultation. Consult the business directly about services and terms. This directory has not independently verified registration or qualifications and does not endorse financial products, returns or suitability.",
+      "lifecycle": "existing",
+      "url": "https://northwoodswmnh.com/",
+      "publicEmail": "info@northwoodswmnh.com",
+      "accessInstructions": "Use the main website's Contact Us page or its published general business email to ask about a consultation. Keep account numbers, financial documents and other private information out of this public directory."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://northwoodswmnh.com/",
+        "label": "Northwoods Wealth Management",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Northwoods — public services and site navigation",
+        "url": "https://northwoodswmnh.com/",
+        "checkedAt": "2026-09-19T03:49:59.262Z"
+      },
+      {
+        "label": "Northwoods — general business contact",
+        "url": "https://northwoodswmnh.com/contact-us/",
+        "checkedAt": "2026-09-19T03:49:59.262Z"
+      }
+    ]
+  },
+  {
+    "id": "4c33067b-fb20-4159-9579-35655fdeb647",
+    "expectedName": "Van Riper Land & Hfhealthome",
+    "expectedVersion": 2,
+    "reason": "Broad business-website review: correct malformed imported business name from the official site and describe services/coverage. Preserve identity, original links and audit history; no confirmation inferred.",
+    "patch": {
+      "name": "Van Riper Land & Home",
+      "summary": "Deerfield-based outdoor design-build services for patios, porches, paths, gardens, drainage and land access.",
+      "description": "Van Riper Land & Home plans and builds outdoor spaces for New Hampshire homes. Services described on its website include patios and outdoor rooms, porches and entry transitions, paths and steps, gardens and native planting, drainage and site work, and low-impact land access. The business is based in Deerfield and describes coverage in the Merrimack Valley and Seacoast regions. Its contact process begins with a project inquiry, followed by a call and, where appropriate, a property consultation.",
+      "location": "Deerfield, NH",
+      "lifecycle": "existing",
+      "url": "https://vanriperlandhome.com/",
+      "accessInstructions": "Use the business website's contact form to discuss a project and confirm availability, coverage and terms. Send property addresses, photographs and budgets directly to the business, not to this public directory."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://vanriperlandhome.com/",
+        "label": "Van Riper Land & Home",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Van Riper — business name, services and coverage",
+        "url": "https://vanriperlandhome.com/",
+        "checkedAt": "2026-09-19T03:49:59.262Z"
+      },
+      {
+        "label": "Van Riper — project inquiry process",
+        "url": "https://vanriperlandhome.com/contact",
+        "checkedAt": "2026-09-19T03:49:59.262Z"
+      }
+    ]
+  }
+]

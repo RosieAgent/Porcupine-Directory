@@ -1,0 +1,172 @@
+[
+  {
+    "id": "2a193762-5ece-478d-80f3-3a9e58421212",
+    "expectedName": "Free State Project",
+    "expectedVersion": 2,
+    "reason": "Requested FSP organization profile; paraphrased official mission/contact pages and preserved imported connections. No owner confirmation or editor review inferred.",
+    "patch": {
+      "kind": "organization",
+      "lifecycle": "existing",
+      "seekingOrganizer": false,
+      "summary": "Educational nonprofit connecting liberty-minded people with New Hampshire through relocation resources, community connections and events.",
+      "description": "The Free State Project describes itself as a 501(c)(3) educational nonprofit. Its work focuses on bringing liberty-minded people to New Hampshire and helping residents and newcomers connect through education, voluntary activity and community-building.\n\nThe organization distinguishes its educational role from electoral campaigning: it says it does not run or endorse candidates or endorse legislation. That is a description of FSP, not a claim about every participant or independent group.\n\nVisitors can explore relocation resources, the Free State Forum, the Porcupine Post newsletter, and events such as PorcFest and the New Hampshire Liberty Forum.\n\nOfficial Facebook, X and YouTube links are listed on FSP’s social-media page. Community Discord and Telegram destinations are linked by FSP; linking does not establish that FSP owns or controls a chat. The original imported chat links are retained, but have not been independently revalidated.\n\nThis directory entry is independent of FSP. The contact address is a published mailing contact, not a confirmed walk-in venue.",
+      "location": "New Hampshire",
+      "accessMode": "public",
+      "accessInstructions": "Browse the public website and calendar without joining. For questions, use FSP’s public contact form or office phone. Newsletter, forum and chat participation may require registration or acceptance of each service’s rules. A link is not a guarantee of admission. Use the public Discord invitation below rather than assuming an imported internal-channel URL will grant access.",
+      "publicPhone": "+1-603-263-0308",
+      "publicAddress": "373 South Willow St, #161, Manchester, NH 03103 (mailing contact)"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.fsp.org/",
+        "label": "Official website"
+      },
+      {
+        "type": "website",
+        "url": "https://www.fsp.org/connect/contact/",
+        "label": "Official public contact form"
+      },
+      {
+        "type": "facebook",
+        "url": "https://www.facebook.com/FreeStateProject.org",
+        "label": "Official FSP Facebook account"
+      },
+      {
+        "type": "x",
+        "url": "https://x.com/FreeStateNH",
+        "label": "Official FSP X account"
+      },
+      {
+        "type": "youtube",
+        "url": "https://www.youtube.com/@FreeStateProjectNH",
+        "label": "Official FSP YouTube channel"
+      },
+      {
+        "type": "discord",
+        "url": "https://discord.com/invite/free-state-project-547451199381569538",
+        "label": "Community Discord invitation listed by FSP"
+      },
+      {
+        "type": "telegram",
+        "url": "https://t.me/Free_State_Project",
+        "label": "Community Telegram listed by FSP"
+      },
+      {
+        "type": "website",
+        "url": "https://community.fsp.org/",
+        "label": "Free State Forum"
+      },
+      {
+        "type": "website",
+        "url": "https://community.fsp.org/calendar/",
+        "label": "FSP community calendar"
+      },
+      {
+        "type": "website",
+        "url": "https://www.fsp.org/connect/social-media/",
+        "label": "FSP social-media directory and newsletter links"
+      },
+      {
+        "type": "website",
+        "url": "https://porcfest.com/",
+        "label": "PorcFest"
+      },
+      {
+        "type": "website",
+        "url": "https://nhlibertyforum.com/",
+        "label": "New Hampshire Liberty Forum"
+      }
+    ],
+    "sources": [
+      {
+        "label": "FSP mission and nonprofit description",
+        "url": "https://www.fsp.org/learn/mission/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "label": "FSP official social accounts",
+        "url": "https://www.fsp.org/connect/social-media/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "label": "FSP community links and independent-group disclaimer",
+        "url": "https://www.fsp.org/connect/find-your-people/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "label": "FSP public contact information",
+        "url": "https://www.fsp.org/connect/contact/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      },
+      {
+        "label": "FSP event and forum links",
+        "url": "https://www.fsp.org/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      }
+    ]
+  },
+  {
+    "id": "5f8f62c7-9c27-403c-8864-4b63379a232b",
+    "expectedName": "The Jefferson",
+    "expectedVersion": 2,
+    "reason": "Small requested business-enrichment example from its own public website; not an endorsement or confirmation badge.",
+    "patch": {
+      "lifecycle": "existing",
+      "summary": "Breakfast and lunch restaurant in Bow Lake Village, Strafford, with dine-in and online ordering.",
+      "description": "The Jefferson is located inside the Independence Inn in Bow Lake Village. Its website describes a breakfast and lunch menu and offers online ordering. Check the website for current menus, service availability and holiday changes. Inclusion here does not certify quality, safety or political affiliation.",
+      "location": "Strafford, NH",
+      "accessMode": "open",
+      "accessInstructions": "Use the public website for menus and ordering, or call the restaurant. Verify current hours before visiting.",
+      "publicPhone": "603-608-7663",
+      "publicEmail": "info@thejeffersonnh.com",
+      "publicAddress": "6 Drake Hill Road, Strafford, NH 03884",
+      "openingHours": "Thursday–Sunday, 6:00 AM–1:30 PM. Closed Monday–Wednesday, Thanksgiving and Christmas. Confirm holiday changes with the restaurant."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://thejeffersonnh.com/",
+        "label": "Restaurant website, menu and ordering"
+      }
+    ],
+    "sources": [
+      {
+        "label": "The Jefferson — public website and contact details",
+        "url": "https://thejeffersonnh.com/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      }
+    ]
+  },
+  {
+    "id": "4a71b339-ef01-489b-99a2-1163bb5f9548",
+    "expectedName": "SoHo",
+    "expectedVersion": 2,
+    "reason": "Small requested business-enrichment example from its own public website; dinner-service hours distinguished from overall venue hours.",
+    "patch": {
+      "lifecycle": "existing",
+      "summary": "Manchester restaurant and lounge offering dinner, cocktails, events and nightlife.",
+      "description": "SoHo Bistro & Lounge combines a restaurant and nightlife venue in Manchester. Its public website links to menus, reservations, takeout and events. Dining-room service hours differ from the venue’s overall opening hours; check availability and any event-specific entry rules directly. Inclusion here does not certify quality, safety or political affiliation.",
+      "location": "Manchester, NH",
+      "accessMode": "public",
+      "accessInstructions": "Use the website to check menus, reservations and event information, or call the venue. Confirm any event-specific age or admission rules before attending.",
+      "publicPhone": "603-518-5657",
+      "publicAddress": "20 Old Granite St, Manchester, NH 03101",
+      "openingHours": "Venue: Wednesday–Saturday, 5:00 PM–1:00 AM; Sunday, 5:00 PM–10:00 PM. Main dining-room dinner service: Wednesday–Sunday, 5:00 PM–9:00 PM. Verify current hours directly."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://sohonh.com/",
+        "label": "Official venue website, menus and reservations"
+      }
+    ],
+    "sources": [
+      {
+        "label": "SoHo — public venue, contact and hours information",
+        "url": "https://sohonh.com/",
+        "checkedAt": "2026-09-19T01:44:06Z"
+      }
+    ]
+  }
+]

@@ -1,0 +1,111 @@
+[
+  {
+    "id": "4d099ca1-23da-4313-a091-08d5d4fc2fa3",
+    "expectedName": "Independence Inn",
+    "expectedVersion": 2,
+    "reason": "Requested Business classification; lodging and public business contact details researched on the official inn website. No confirmation or relationship with an account owner inferred.",
+    "patch": {
+      "kind": "business",
+      "lifecycle": "existing",
+      "summary": "Historic inn near Bow Lake in Strafford, offering guest rooms, self check-in and private event-space rentals.",
+      "description": "Independence Inn is a lodging business in Strafford, New Hampshire. Its website describes six guest rooms with private bathrooms, including a two-room suite, and self check-in.\n\nThe inn also offers spaces for private gatherings. The Jefferson is the on-site restaurant and has its own directory listing; restaurant hours and contacts should not be confused with inn reservations. Check room availability, booking terms and event arrangements directly with the business.",
+      "location": "Strafford, NH",
+      "accessMode": "public",
+      "accessInstructions": "Use the inn's main website to check rooms and make a booking, or call its published reservations number. For event-space questions use the website's contact page. Public website access does not mean unrestricted access to guest rooms or private events.",
+      "publicPhone": "+1-603-664-9908",
+      "publicAddress": "6 Drake Hill Road, Strafford, NH 03884"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://nhindependenceinn.com/",
+        "label": "Official inn website",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Independence Inn — rooms and private event spaces",
+        "url": "https://nhindependenceinn.com/",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      },
+      {
+        "label": "Inn reservations and public business address",
+        "url": "https://nhindependenceinn.com/contact/",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "2ea81405-a48e-4454-8773-fec993ef0a4b",
+    "expectedName": "Liberty Ballot",
+    "expectedVersion": 2,
+    "reason": "Requested Resource classification; purpose, independence and methodology researched on Liberty Ballot's own homepage and FAQ. Recommendations are the source's views, not directory endorsements.",
+    "patch": {
+      "kind": "resource",
+      "lifecycle": "existing",
+      "summary": "Volunteer-run New Hampshire voting resource offering liberty-oriented candidate recommendations for local ballots.",
+      "description": "Liberty Ballot publishes candidate recommendations for New Hampshire voters. Its FAQ describes combining questionnaires, voting records and information from several civic and policy organizations.\n\nIt is independent of the New Hampshire Liberty Alliance, although NHLA is among its information sources. The FAQ says this is a volunteer effort that does not accept donations.\n\nRecommendations can change between primary and general elections, and not every race receives a recommendation. Consult the website for the current election. These are Liberty Ballot's judgments, not official election information or endorsements by Porcupine Directory. The separately listed crowdsourced Signal channel is not merged into this website entry.",
+      "location": "New Hampshire",
+      "accessMode": "public",
+      "accessInstructions": "Open the public website for ballot recommendations and its FAQ for methodology. Use official election authorities for registration, polling places and election deadlines. Questions about the recommendations can go to the public email listed by Liberty Ballot.",
+      "publicEmail": "libertyballot@proton.me"
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://libertyballot.com/",
+        "label": "Liberty Ballot website",
+        "placement": "primary"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Liberty Ballot — current recommendations",
+        "url": "https://libertyballot.com/",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      },
+      {
+        "label": "Liberty Ballot — methodology and independence",
+        "url": "https://libertyballot.com/faq/",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  },
+  {
+    "id": "6b06283d-fec2-4907-9ce3-d49f22689b1e",
+    "expectedName": "Young Americans For Liberty (YAL)",
+    "expectedVersion": 2,
+    "reason": "Requested Organization classification, national homepage and NH chapter context from YAL's official site. Preserve the imported UNH Instagram separately without treating it as the national account or verifying its current activity.",
+    "patch": {
+      "kind": "organization",
+      "lifecycle": "existing",
+      "summary": "National pro-liberty student organization offering campus chapters, activism training and civic engagement, with chapters listed in New Hampshire.",
+      "description": "Young Americans for Liberty (YAL) organizes and trains students through a nationwide chapter network. Its website describes campus-rights campaigns, political organizing and student leadership programs.\n\nThe national website lists University of New Hampshire in Durham, Keene State College and Lakes Region Community College in Laconia among its chapters. Check directly for current local participation and meeting details.\n\nThe UNH chapter Instagram link came from the original directory document. It is retained under Additional resources, distinct from the national organization website; this research did not verify that account's current activity. Classification as an Organization describes YAL's role, not a certification of legal or tax status.",
+      "location": "New Hampshire",
+      "accessMode": "public",
+      "accessInstructions": "Visit the national website for its chapter directory, membership and contact options. Membership and program eligibility are handled by YAL, not this directory. Ask YAL or the relevant chapter about current NH activities; a listed chapter does not guarantee an active local meetup."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://www.yaliberty.org/",
+        "label": "YAL national website",
+        "placement": "primary"
+      },
+      {
+        "type": "instagram",
+        "url": "https://www.instagram.com/unh_yal",
+        "label": "UNH chapter Instagram — imported; current activity unverified",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "YAL — organization, programs and NH chapter directory",
+        "url": "https://www.yaliberty.org/",
+        "checkedAt": "2026-09-19T02:44:32Z"
+      }
+    ]
+  }
+]

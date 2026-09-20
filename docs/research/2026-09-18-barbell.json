@@ -1,0 +1,68 @@
+[
+  {
+    "id": "9cc7ad4d-a739-4847-85b4-383f8102a04c",
+    "expectedName": "Free State Barbell Club",
+    "expectedVersion": 2,
+    "reason": "Requested correction from Group to Business and enrichment from the gym's official website. No member community, personal profile, endorsement or confirmation inferred.",
+    "patch": {
+      "kind": "business",
+      "lifecycle": "existing",
+      "summary": "Manchester strength and powerlifting gym offering memberships, drop-in access and personal training, with round-the-clock member access.",
+      "description": "Free State Barbell Club operates a strength-focused gym in Manchester with competition-style lifting equipment. Its website welcomes beginners as well as experienced lifters.\n\nMemberships, drop-in passes and a personal-training option are listed on the business website. Arrange a trial visit or ask about current access requirements directly; 24-hour member access is not a promise of staffed reception or unrestricted walk-in entry.\n\nThe gym also describes shared training times. This business listing does not establish a separate community group or publish member identities. Check current services, terms and availability with the business.",
+      "location": "Manchester, NH",
+      "accessMode": "public",
+      "accessInstructions": "Use the main website for membership, drop-in, trial-visit and contact information. Membership signup is handled by the gym's external provider, linked under Additional resources. Contact the business before an initial visit and check event-related closures. Admission depends on the gym's current terms; the directory does not take bookings or collect membership details.",
+      "publicEmail": "info@fsbb.club",
+      "publicAddress": "270 Amory St, Unit 3, Manchester, NH 03102",
+      "openingHours": "24/7 member access. The published FAQ notes closures during two annual powerlifting meets; confirm dates and first-visit arrangements directly."
+    },
+    "connections": [
+      {
+        "type": "website",
+        "url": "https://fsbb.club/",
+        "label": "Official gym website",
+        "placement": "primary"
+      },
+      {
+        "type": "instagram",
+        "url": "https://www.instagram.com/freestatebarbellclub/",
+        "label": "Free State Barbell Club on Instagram",
+        "placement": "primary"
+      },
+      {
+        "type": "facebook",
+        "url": "https://www.facebook.com/freestatebarbellclub/",
+        "label": "Free State Barbell Club on Facebook",
+        "placement": "primary"
+      },
+      {
+        "type": "website",
+        "url": "https://guru.gyminsight.com/join/A80uY8qMmZZeCtP",
+        "label": "Membership signup — external gym provider",
+        "placement": "additional"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Free State Barbell Club — facility and social links",
+        "url": "https://fsbb.club/",
+        "checkedAt": "2026-09-19T02:29:46Z"
+      },
+      {
+        "label": "Business contact information",
+        "url": "https://fsbb.club/contact",
+        "checkedAt": "2026-09-19T02:29:46Z"
+      },
+      {
+        "label": "Membership and service options",
+        "url": "https://fsbb.club/join-pricing",
+        "checkedAt": "2026-09-19T02:29:46Z"
+      },
+      {
+        "label": "Access and closure information",
+        "url": "https://fsbb.club/faqs",
+        "checkedAt": "2026-09-19T02:29:46Z"
+      }
+    ]
+  }
+]
