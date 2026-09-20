@@ -13,6 +13,7 @@ import { useLocation } from "react-router";
 import { IconAction } from "./IconAction";
 
 const browsePaths = new Set([
+  "/",
   "/directory",
   "/groups",
   "/channels",
@@ -23,13 +24,7 @@ const browsePaths = new Set([
   "/events/calendar",
   "/tags",
 ]);
-const publicPaths = new Set([
-  "/",
-  "/about",
-  "/donate",
-  "/submit",
-  "/events/add",
-]);
+const publicPaths = new Set(["/about", "/donate", "/submit", "/events/add"]);
 const publicFilters = new Set([
   "q",
   "kind",

@@ -7,6 +7,13 @@ test("filter controls expand beside the results count and preserve applied URL s
   const toolbar = page.getByTestId("directory-results-toolbar");
   const toggle = toolbar.getByRole("button", { name: "Filters", exact: true });
   await expect(toolbar.getByRole("status")).toContainText(/\d+ entries found/);
+  const pageSize = page.getByRole("combobox", {
+    name: "Results per page",
+  });
+  await expect(pageSize).toHaveText("25");
+  await pageSize.click();
+  await expect(page.getByRole("option")).toHaveText(["25", "50", "100"]);
+  await page.keyboard.press("Escape");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(toggle).toHaveAttribute("aria-description", "2 active filters");
   await expect(
@@ -48,7 +55,7 @@ test("filter controls expand beside the results count and preserve applied URL s
     "aria-description",
     "Search and filter entries",
   );
-  await expect(page.getByRole("article")).toHaveCount(12);
+  await expect(page.getByRole("article")).toHaveCount(25);
   await toggle.click();
   await expect(region).toHaveCount(0);
   await page.screenshot({ path: "test-results/filters-collapsed.png" });

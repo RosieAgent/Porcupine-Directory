@@ -54,7 +54,7 @@ export default function ListingPage() {
     <Page
       title={listing.name}
       description={listing.summary}
-      parent={{ label: "Explore", to: "/directory" }}
+      parent={{ label: "Explore", to: "/" }}
       shareable={listing.status === "published"}
       actions={
         <>
@@ -108,6 +108,16 @@ export default function ListingPage() {
           <Chip label={accessLabels[listing.accessMode]} />
         )}
       </Stack>
+      {listing.description && (
+        <Paper variant="outlined" sx={{ p: 3 }}>
+          <Typography variant="h2" sx={{ mb: 2 }}>
+            About
+          </Typography>
+          <Typography sx={{ whiteSpace: "pre-wrap" }}>
+            {listing.description}
+          </Typography>
+        </Paper>
+      )}
       <Paper variant="outlined" sx={{ p: 3 }}>
         <Typography variant="h2" sx={{ mb: 2 }}>
           {listing.accessMode === "invite_only" ||
@@ -143,16 +153,6 @@ export default function ListingPage() {
           )}
         </Stack>
       </Paper>
-      {listing.description && (
-        <Paper variant="outlined" sx={{ p: 3 }}>
-          <Typography variant="h2" sx={{ mb: 2 }}>
-            About
-          </Typography>
-          <Typography sx={{ whiteSpace: "pre-wrap" }}>
-            {listing.description}
-          </Typography>
-        </Paper>
-      )}
       <RecentPublications listingId={listing.id} />
       {(listing.publicPhone ||
         listing.publicEmail ||
@@ -194,21 +194,6 @@ export default function ListingPage() {
         <Typography>Location: {listing.location}</Typography>
       )}
       <TopicTags tags={listing.tags} />
-      <Alert severity="info">
-        {listing.selfConfirmedAt &&
-          `Self-confirmed ${new Date(listing.selfConfirmedAt).toLocaleDateString()}. `}
-        {listing.editorReviewedAt &&
-          `Editor-reviewed ${new Date(listing.editorReviewedAt).toLocaleDateString()}. Review is not a guarantee of accuracy. `}
-        {listing.lastConfirmedAt
-          ? "Confirmed " +
-            new Date(listing.lastConfirmedAt).toLocaleDateString()
-          : "Not independently confirmed."}
-        {listing.importedAt &&
-          " Imported " +
-            new Date(listing.importedAt).toLocaleDateString() +
-            "."}{" "}
-        Check the original source before joining.
-      </Alert>
       <Paper
         component="section"
         aria-label="Source information"

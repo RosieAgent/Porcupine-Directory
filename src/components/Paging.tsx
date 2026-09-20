@@ -51,7 +51,7 @@ export function Paging({
           setParams(updatedSearch(params, { pageSize: event.target.value }))
         }
       >
-        {[12, 24, 48].map((size) => (
+        {[25, 50, 100].map((size) => (
           <MenuItem key={size} value={size}>
             {size}
           </MenuItem>

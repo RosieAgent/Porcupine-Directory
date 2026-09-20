@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 const report = "f8d2630f-89af-4308-9117-9bc9a0ac9ccc";
 
-test("resource cards retain confidence icons without redundant access text", async ({
+test("resource cards omit confidence icons without redundant access text", async ({
   page,
 }) => {
   await page.goto("/resources");
@@ -10,6 +10,9 @@ test("resource cards retain confidence icons without redundant access text", asy
     page
       .getByRole("article")
       .getByText("Access not confirmed", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("img", { name: "Unconfirmed", exact: true }),
   ).toHaveCount(0);
 });
 test("report shows recent cached episodes and does not load external media", async ({

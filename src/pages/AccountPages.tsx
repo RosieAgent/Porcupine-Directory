@@ -40,7 +40,6 @@ import {
   confirmedPasswordSchema,
 } from "../../shared/auth";
 import { listingsResponse } from "../../shared/contracts";
-import { ConfirmationBadges } from "../components/ConfirmationBadges";
 import { StaffVerification } from "../components/StaffVerification";
 import { AdminUsers, type AdminUser } from "../components/AdminUsers";
 import EditOutlined from "@mui/icons-material/EditOutlined";
@@ -643,7 +642,6 @@ function Entries({ all }: { all: boolean }) {
                         : "Pending publication"}{" "}
                     · revision {entry.version}
                   </Typography>
-                  <ConfirmationBadges listing={entry} />
                 </Stack>
                 <IconLink
                   label={"Edit " + entry.name}

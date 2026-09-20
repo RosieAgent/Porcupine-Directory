@@ -6,6 +6,7 @@ import {
   submissionSchema,
 } from "../dist-server/shared/contracts.js";
 test("paging and filters validate query strings and reject unbounded or malformed inputs", () => {
+  assert.equal(listingQuerySchema.parse({}).pageSize, 25);
   assert.equal(
     listingQuerySchema.parse({
       page: "2",

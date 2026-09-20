@@ -192,8 +192,19 @@ const paging = {
   page: z.coerce.number().int().min(1).max(10000).default(1),
   pageSize: z.coerce
     .number()
-    .pipe(z.union([z.literal(12), z.literal(24), z.literal(48)]))
-    .default(12),
+    // Keep the previous sizes valid for old shared URLs while presenting the
+    // new directory choices in the UI.
+    .pipe(
+      z.union([
+        z.literal(12),
+        z.literal(24),
+        z.literal(25),
+        z.literal(48),
+        z.literal(50),
+        z.literal(100),
+      ]),
+    )
+    .default(25),
 };
 export const listingQuerySchema = z.object({
   ...paging,

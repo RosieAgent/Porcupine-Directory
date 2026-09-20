@@ -75,3 +75,4 @@ export const activationSchema = z.object({
   password: passwordSchema,
 });
 export const savedSchema = z.object({ ids: z.array(z.uuid()) });
+export const savedTagsSchema = z.object({ ids: z.array(z.uuid()) });

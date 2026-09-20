@@ -18,7 +18,6 @@ import { useSaved } from "../state/SavedProvider";
 import { EntryStatus } from "./EntryStatus";
 import { ConnectionLinks } from "./ConnectionLinks";
 import { TopicTags } from "./TopicTags";
-import { ConfirmationBadges } from "./ConfirmationBadges";
 import { AccessBadge } from "./AccessBadge";
 
 export function SaveButton({ listing }: { listing: Listing }) {
@@ -73,7 +72,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             <SaveButton listing={listing} />
           </Stack>
         </Stack>
-        <EntryStatus listing={listing} confirmation={false} access={false} />
+        <EntryStatus listing={listing} access={false} />
         <Typography color="text.secondary">{listing.summary}</Typography>
         {listing.accessMode !== "unknown" && (
           <Typography variant="body2" sx={{ mt: 2 }}>
@@ -95,12 +94,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <TopicTags tags={listing.tags} compact />
-        </Box>
-        <Box
-          data-testid="card-confirmation"
-          sx={{ flexShrink: 0, ml: "auto", pb: 1 }}
-        >
-          <ConfirmationBadges listing={listing} />
         </Box>
       </CardActions>
     </Card>

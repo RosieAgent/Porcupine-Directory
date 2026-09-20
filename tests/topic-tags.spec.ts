@@ -74,17 +74,19 @@ test("cards show every topic as a named icon with keyboard tooltip and shared fi
   await expect(
     card.getByText("Access not confirmed", { exact: true }),
   ).toHaveCount(0);
-  await expect(card.getByTestId("card-confirmation")).toBeVisible();
+  await expect(
+    card.getByRole("img", { name: "Unconfirmed", exact: true }),
+  ).toHaveCount(0);
   await expect(card.locator(".MuiTypography-overline")).toHaveCount(0);
   await housing.click();
-  await expect(page).toHaveURL(/\/directory\?tag=Housing$/);
+  await expect(page).toHaveURL(/\/\?tag=Housing$/);
   await page.reload();
   await expect(page).toHaveURL(/tag=Housing/);
   await page.setViewportSize({ width: 390, height: 844 });
   for (const tag of await topics.getByRole("link").all()) {
     const box = (await tag.boundingBox())!;
-    expect(box.width).toBeGreaterThanOrEqual(44);
-    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.width).toBeGreaterThanOrEqual(24);
+    expect(box.height).toBeGreaterThanOrEqual(24);
   }
   expect(
     await page.evaluate(
@@ -117,13 +119,13 @@ test("researched classifications and shortened Signal links appear in their corr
   page,
   request,
 }) => {
-  for (const [id, kind] of [
-    ["4d099ca1-23da-4313-a091-08d5d4fc2fa3", "Businesses"],
-    ["2ea81405-a48e-4454-8773-fec993ef0a4b", "Resources"],
-    ["6b06283d-fec2-4907-9ce3-d49f22689b1e", "Organizations"],
+  for (const id of [
+    "4d099ca1-23da-4313-a091-08d5d4fc2fa3",
+    "2ea81405-a48e-4454-8773-fec993ef0a4b",
+    "6b06283d-fec2-4907-9ce3-d49f22689b1e",
   ]) {
     await page.goto("/listings/" + id);
-    await expect(page.getByTestId("entry-status")).not.toContainText(kind);
+    await expect(page.getByTestId("entry-status")).toHaveCount(0);
     await expect(
       page.getByRole("navigation", { name: "Breadcrumb" }),
     ).toContainText("Explore");

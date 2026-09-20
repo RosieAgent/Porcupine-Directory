@@ -99,7 +99,7 @@ test("failed checks keep cached events visible and clearly warn visitors", async
   await page.route("**/api/meta", (route) => route.fulfill({ json: metadata }));
   await page.goto("/events");
   await expect(page.getByText(/The latest check failed/)).toBeVisible();
-  await expect(page.getByRole("article")).toHaveCount(12);
+  await expect(page.getByRole("article")).toHaveCount(25);
 });
 
 test("month calendar is usable on mobile and invalid months are rejected", async ({

@@ -18,7 +18,7 @@ test("Explore offers Browse tags without the three redundant shortcut pills", as
   await expect(page).toHaveURL(/\/tags$/);
 });
 
-test("table replaces Access with clickable tag icons and keeps confirmation beside the entry name", async ({
+test("table replaces Access with clickable tag icons without a confirmation badge", async ({
   page,
   request,
 }) => {
@@ -50,20 +50,8 @@ test("table replaces Access with clickable tag icons and keeps confirmation besi
     await page.setViewportSize({ width, height: 1000 });
     const heading = row.getByTestId("table-entry-heading");
     const link = heading.getByRole("link", { name: data.items[0].name });
-    const confirmation = heading.getByRole("img", {
-      name: "Unconfirmed",
-      exact: true,
-    });
     await expect(link).toBeVisible();
-    await expect(confirmation).toBeVisible();
-    const nameBox = (await link.boundingBox())!;
-    const badgeBox = (await confirmation.boundingBox())!;
-    expect(badgeBox.x).toBeGreaterThanOrEqual(nameBox.x + nameBox.width);
-    expect(
-      Math.abs(
-        badgeBox.y + badgeBox.height / 2 - nameBox.y - nameBox.height / 2,
-      ),
-    ).toBeLessThan(2);
+    await expect(heading.getByRole("img")).toHaveCount(0);
     await expect(
       row.getByRole("img", { name: "Invite only", exact: true }),
     ).toBeVisible();
@@ -74,7 +62,7 @@ test("table replaces Access with clickable tag icons and keeps confirmation besi
       name: "Filter by topic: Housing",
       exact: true,
     });
-    await expect(housing).toHaveAttribute("href", "/directory?tag=Housing");
+    await expect(housing).toHaveAttribute("href", "/?tag=Housing");
     await housing.focus();
     await expect(
       page.getByRole("tooltip", { name: "Housing", exact: true }),
@@ -92,7 +80,7 @@ test("table replaces Access with clickable tag icons and keeps confirmation besi
   await row
     .getByRole("link", { name: "Filter by topic: Housing", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/directory\?tag=Housing$/);
+  await expect(page).toHaveURL(/\/\?tag=Housing$/);
 });
 
 test("The Independents opens the series collection instead of one episode", async ({

@@ -126,15 +126,16 @@ export function TopicTags({
           <Tooltip key={tag} title={tag} describeChild enterTouchDelay={350}>
             <IconButton
               component={RouterLink}
-              to={"/directory?tag=" + encodeURIComponent(tag)}
+              to={"/?tag=" + encodeURIComponent(tag)}
               aria-label={"Filter by topic: " + tag}
               sx={{
-                width: 44,
-                height: 44,
+                width: 24,
+                height: 24,
                 border: "1px solid",
                 borderColor: "divider",
-                borderRadius: 2,
+                borderRadius: 1,
                 color: "text.secondary",
+                p: 0,
               }}
             >
               <TagIcon name={tag} />
@@ -143,17 +144,18 @@ export function TopicTags({
         ) : (
           <Chip
             key={tag}
+            size="small"
             icon={<TagIcon name={tag} />}
             label={tag}
             component={RouterLink}
-            to={"/directory?tag=" + encodeURIComponent(tag)}
+            to={"/?tag=" + encodeURIComponent(tag)}
             clickable
             sx={{
               maxWidth: "100%",
-              minHeight: 44,
-              pl: 1.25,
+              minHeight: 24,
+              pl: 0.5,
               "& .MuiChip-icon": { ml: 0, mr: 0 },
-              "& .MuiChip-label": { pl: 1, pr: 1.5 },
+              "& .MuiChip-label": { pl: 0.5, pr: 0.75 },
             }}
           />
         ),

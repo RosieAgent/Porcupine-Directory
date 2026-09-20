@@ -13,7 +13,7 @@ function RouteError() {
       <IconAction label="Reload page" onClick={() => window.location.reload()}>
         <Refresh />
       </IconAction>
-      <IconLink label="Return home" to="/">
+      <IconLink label="Return to directory" to="/">
         <HomeOutlined />
       </IconLink>
     </Stack>
@@ -82,9 +82,7 @@ const router = createBrowserRouter([
       },
       {
         index: true,
-        lazy: async () => ({
-          Component: (await import("./pages/HomePage")).default,
-        }),
+        lazy: directory,
       },
       ...[
         "directory",

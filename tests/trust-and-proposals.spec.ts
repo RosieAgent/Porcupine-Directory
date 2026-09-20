@@ -91,26 +91,23 @@ test("invitation instructions encourage external requests and explain public ret
     )
     .toBe(true);
 });
-test("confirmation appears in the card footer without a type label, with focus tooltips", async ({
+test("unconfirmed entries stay visually quiet on directory cards", async ({
   page,
 }) => {
   await page.goto("/directory");
   const card = page.getByRole("article").first();
-  const status = card.getByTestId("card-confirmation");
-  const badge = status.getByRole("img", { name: "Unconfirmed", exact: true });
-  await expect(badge).toBeVisible();
-  await badge.focus();
   await expect(
-    page.getByRole("tooltip", { name: /Unconfirmed/ }),
-  ).toBeVisible();
+    card.getByRole("img", { name: "Unconfirmed", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("tooltip", { name: /Unconfirmed/ })).toHaveCount(
+    0,
+  );
   await expect(card.locator(".MuiTypography-overline")).toHaveCount(0);
-  const icon = (await badge.boundingBox())!;
   const title = (await card.getByRole("heading").boundingBox())!;
   const bounds = (await card.boundingBox())!;
-  expect(icon.x).toBeGreaterThan(bounds.x + bounds.width / 2);
-  expect(icon.y).toBeGreaterThan(title.y + title.height);
+  expect(title.y).toBeGreaterThanOrEqual(bounds.y);
 });
-test("dated checks become recheck badges and explain their dates", async ({
+test("dated checks remain available to the data model without public badges", async ({
   page,
   request,
 }) => {
@@ -126,14 +123,11 @@ test("dated checks become recheck badges and explain their dates", async ({
   );
   await page.goto("/directory");
   const card = page.getByRole("article").first();
-  await card.getByRole("img", { name: "Self-confirmed", exact: true }).focus();
-  await expect(page.getByRole("tooltip")).toContainText("New Hampshire time");
-  await card
-    .getByRole("img", { name: "Editor review needs rechecking", exact: true })
-    .focus();
   await expect(
-    page.getByRole("tooltip", { name: /^Editor-reviewed on/ }),
-  ).toContainText("180 days");
+    card.getByRole("img", {
+      name: /^(Self-confirmed|Editor review needs rechecking)$/,
+    }),
+  ).toHaveCount(0);
 });
 test("missing joining details are not automatically ideas; filter URLs round-trip", async ({
   page,
@@ -190,9 +184,7 @@ test("FSP is an enriched organization, preserving its stable URL and source attr
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Free State Project",
   );
-  await expect(page.getByTestId("entry-status")).not.toContainText(
-    "Organizations",
-  );
+  await expect(page.getByTestId("entry-status")).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Breadcrumb" }),
   ).toContainText("Explore");
@@ -210,7 +202,7 @@ test("FSP is an enriched organization, preserving its stable URL and source attr
   ).toBeVisible();
   await expect(
     page.getByRole("img", { name: "Unconfirmed", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect
     .poll(() =>
@@ -224,10 +216,11 @@ test("sources page discloses sorting and the limits of verification", async ({
   await page.goto("/about");
   await expect(
     page.getByRole("heading", {
-      name: "Sources, ranking & privacy",
+      name: "About",
       exact: true,
     }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Ranking", exact: true }).click();
   await expect(page.getByText("180 days", { exact: false })).toBeVisible();
   await expect(
     page.getByText("not proof of independence", { exact: false }),
@@ -235,4 +228,6 @@ test("sources page discloses sorting and the limits of verification", async ({
   await expect(
     page.getByText("There are no member-attestation votes", { exact: false }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await expect(page.getByText("AI analysis", { exact: false })).toBeVisible();
 });

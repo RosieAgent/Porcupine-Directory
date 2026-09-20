@@ -7,7 +7,7 @@ export default function NotFoundPage() {
       title="Page not found"
       description="This link may be incomplete or the page may have moved."
     >
-      <IconLink label="Explore the directory" to="/directory">
+      <IconLink label="Explore the directory" to="/">
         <TravelExploreOutlined />
       </IconLink>
     </Page>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   AppBar,
   Box,
@@ -18,6 +19,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconAction } from "./IconAction";
 import { HeaderAccountActions } from "./HeaderAccountActions";
+import { queries } from "../lib/api";
+import { useSavedTags } from "../state/SavedTagsProvider";
 import {
   Form,
   Link,
@@ -27,20 +30,24 @@ import {
 } from "react-router";
 
 const navigation = [
-  ["Explore", "/directory"],
+  ["Explore", "/"],
   ["Browse tags", "/tags"],
-  ["Businesses", "/directory?tag=Business"],
-  ["Nonprofits", "/directory?tag=Nonprofit"],
-  ["Signal connections", "/directory?connection=signal"],
   ["Events", "/events"],
-  ["Saved", "/saved"],
-  ["Add an entry", "/submit"],
+] as const;
+const navigationAfterSavedTags = [
+  ["Saved entries", "/saved"],
+  ["Add entry", "/submit"],
   ["Donate", "/donate"],
-  ["Sources, ranking & privacy", "/about"],
+  ["About", "/about"],
 ] as const;
 export function Layout() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { ids: savedTagIds } = useSavedTags();
+  const tags = useQuery(queries.tags);
+  const savedTags = (tags.data?.items ?? []).filter(
+    (tag) => savedTagIds.includes(tag.id) && !tag.retired && !tag.mergedInto,
+  );
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
     main.current?.focus({ preventScroll: true });
@@ -83,7 +90,7 @@ export function Layout() {
           <Box
             component={Form}
             method="get"
-            action="/directory"
+            action="/"
             role="search"
             sx={{
               display: "flex",
@@ -114,6 +121,53 @@ export function Layout() {
           </Typography>
           <List>
             {navigation.map(([label, to]) => (
+              <ListItemButton
+                key={to}
+                component={Link}
+                to={to}
+                onClick={() => setOpen(false)}
+                sx={{
+                  bgcolor:
+                    location.pathname + location.search === to
+                      ? "action.selected"
+                      : undefined,
+                }}
+              >
+                <ListItemText primary={label} />
+              </ListItemButton>
+            ))}
+            {savedTags.length > 0 && (
+              <>
+                <Typography
+                  component="li"
+                  variant="overline"
+                  sx={{ px: 2, pt: 2, color: "text.secondary" }}
+                >
+                  Saved tags
+                </Typography>
+                {savedTags.map((tag) => {
+                  const to = "/?tags=" + tag.id;
+                  return (
+                    <ListItemButton
+                      key={tag.id}
+                      component={Link}
+                      to={to}
+                      onClick={() => setOpen(false)}
+                      sx={{
+                        bgcolor:
+                          location.pathname + location.search === to
+                            ? "action.selected"
+                            : undefined,
+                      }}
+                    >
+                      <ListItemText primary={tag.name} />
+                    </ListItemButton>
+                  );
+                })}
+                <Divider component="li" sx={{ my: 1 }} />
+              </>
+            )}
+            {navigationAfterSavedTags.map(([label, to]) => (
               <ListItemButton
                 key={to}
                 component={Link}
@@ -160,6 +214,52 @@ export function Layout() {
                 {label}
               </Button>
             ))}
+            {savedTags.length > 0 && (
+              <>
+                <Typography
+                  variant="overline"
+                  sx={{ px: 1, color: "text.secondary" }}
+                >
+                  Saved tags
+                </Typography>
+                {savedTags.map((tag) => {
+                  const to = "/?tags=" + tag.id;
+                  return (
+                    <Button
+                      key={tag.id}
+                      component={Link}
+                      to={to}
+                      sx={{
+                        justifyContent: "flex-start",
+                        bgcolor:
+                          location.pathname + location.search === to
+                            ? "action.selected"
+                            : undefined,
+                      }}
+                    >
+                      {tag.name}
+                    </Button>
+                  );
+                })}
+                <Divider sx={{ my: 1 }} />
+              </>
+            )}
+            {navigationAfterSavedTags.map(([label, to]) => (
+              <Button
+                key={to}
+                component={Link}
+                to={to}
+                sx={{
+                  justifyContent: "flex-start",
+                  bgcolor:
+                    location.pathname + location.search === to
+                      ? "action.selected"
+                      : undefined,
+                }}
+              >
+                {label}
+              </Button>
+            ))}
           </Stack>
         </Box>
         <Container
@@ -181,7 +281,7 @@ export function Layout() {
       <Container component="footer" sx={{ py: 3 }}>
         <Typography variant="body2" color="text.secondary">
           Community information, without an account.{" "}
-          <Link to="/about">Sources, ranking & privacy</Link>
+          <Link to="/about">About</Link>
         </Typography>
       </Container>
       <ScrollRestoration />

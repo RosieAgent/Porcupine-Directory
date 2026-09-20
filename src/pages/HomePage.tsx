@@ -14,17 +14,17 @@ import AddCircleOutline from "@mui/icons-material/AddCircleOutlined";
 const sections = [
   {
     title: "Explore",
-    to: "/directory",
+    to: "/",
     description: "Find communities, services and resources in one directory.",
   },
   {
     title: "Signal connections",
-    to: "/directory?connection=signal",
+    to: "/?connection=signal",
     description: "Find entries with Signal chats and learn how to join.",
   },
   {
     title: "Businesses",
-    to: "/directory?tag=Business",
+    to: "/?tag=Business",
     description: "Find services, shops, and community businesses.",
   },
   {
@@ -34,7 +34,7 @@ const sections = [
   },
   {
     title: "Nonprofits",
-    to: "/directory?tag=Nonprofit",
+    to: "/?tag=Nonprofit",
     description:
       "Explore entries with a nonprofit descriptor, not a guarantee of status.",
   },
@@ -56,7 +56,7 @@ export default function HomePage() {
       description="Your starting point for New Hampshire’s liberty community. Pick a section or search for an interest, place, or name."
     >
       <Stack direction="row" spacing={1}>
-        <IconLink label="Explore all entries" to="/directory">
+        <IconLink label="Explore all entries" to="/">
           <TravelExploreOutlined />
         </IconLink>
         <IconLink label="Add an entry" to="/submit">

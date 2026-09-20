@@ -62,7 +62,7 @@ test("Signal table is shareable, keeps paging and shows direct safe links", asyn
   await expect(links.first()).toBeInViewport();
   await expect(
     firstEntry.getByRole("img", { name: "Unconfirmed", exact: true }),
-  ).toBeInViewport();
+  ).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),

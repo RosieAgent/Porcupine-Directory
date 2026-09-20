@@ -4,16 +4,21 @@ import LinkOffOutlined from "@mui/icons-material/LinkOffOutlined";
 import PersonSearchOutlined from "@mui/icons-material/PersonSearchOutlined";
 import { AccessBadge } from "./AccessBadge";
 import type { Listing } from "../../shared/contracts";
-import { ConfirmationBadges } from "./ConfirmationBadges";
 export function EntryStatus({
   listing,
-  confirmation = true,
   access = true,
 }: {
   listing: Listing;
-  confirmation?: boolean;
   access?: boolean;
 }) {
+  const hasStatus =
+    (access &&
+      (listing.accessMode === "invite_only" ||
+        listing.accessMode === "private")) ||
+    listing.lifecycle === "proposed" ||
+    listing.seekingOrganizer ||
+    listing.missingJoiningDetails;
+  if (!hasStatus) return null;
   return (
     <Stack
       direction="row"
@@ -21,7 +26,6 @@ export function EntryStatus({
       sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.75 }}
       data-testid="entry-status"
     >
-      {confirmation && <ConfirmationBadges listing={listing} />}
       {access && <AccessBadge listing={listing} />}
       {listing.lifecycle === "proposed" && (
         <Tooltip

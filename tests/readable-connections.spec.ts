@@ -111,7 +111,7 @@ test("NHLA has a sourced organization profile without implying calendar sync or 
   await expect(page.getByRole("link", { name: /^Facebook ·/ })).toHaveCount(2);
   await expect(
     page.getByRole("img", { name: "Unconfirmed", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     page.getByText("its events are not automatically synchronized", {
       exact: false,
@@ -151,7 +151,7 @@ test("Barbell is a sourced Business with compact primary links and external sign
   ).toHaveAttribute("href", /guru\.gyminsight\.com/);
   await expect(
     page.getByRole("img", { name: "Unconfirmed", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect
     .poll(() =>

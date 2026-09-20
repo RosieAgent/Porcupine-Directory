@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("home sections lead to shareable listing pages in two clicks", async ({
+test("the directory leads to shareable listing pages", async ({
   page,
   context,
 }) => {
@@ -12,15 +12,12 @@ test("home sections lead to shareable listing pages in two clicks", async ({
       external.push(request.url());
   });
   await page.goto("/");
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Find your people. Find your way in.",
+    "Explore the directory",
   );
-  await expect(page.getByRole("article")).toHaveCount(0);
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: /^Signal connections/ })
-    .click();
-  await expect(page).toHaveURL(/\/directory\?connection=signal$/);
+  await page.goto("/?connection=signal");
+  await expect(page).toHaveURL(/\/\?connection=signal$/);
   const first = page
     .getByRole("article")
     .first()
@@ -116,7 +113,7 @@ test("events have their own routes, filter URLs and direct-load detail pages", a
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Community events",
   );
-  await expect(page.getByRole("article")).toHaveCount(12);
+  await expect(page.getByRole("article")).toHaveCount(25);
   const first = page
     .getByRole("article")
     .first()
@@ -146,7 +143,7 @@ test("bookmarks remain browser-local and storage survives reload", async ({
   await first.getByRole("button", { name: /^Save / }).click();
   await page
     .getByRole("navigation", { name: "Sections", exact: true })
-    .getByRole("link", { name: "Saved", exact: true })
+    .getByRole("link", { name: "Saved entries", exact: true })
     .click();
   await expect(page.getByRole("article")).toHaveCount(1);
   await expect(page.getByRole("article")).toContainText(title!);
@@ -247,7 +244,7 @@ test("mobile navigation and filtered page fit the viewport", async ({
     .getByRole("navigation", { name: "Mobile sections" })
     .getByRole("link", { name: "Explore", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/directory$/);
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("article").first()).toBeVisible();
   expect(
     await page.evaluate(
@@ -257,4 +254,13 @@ test("mobile navigation and filtered page fit the viewport", async ({
   await page.screenshot({ path: "test-results/mobile-routes.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: "test-results/desktop-routes.png" });
+});
+
+test("the site root opens the directory", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole("heading", { name: "Explore the directory" }),
+  ).toBeVisible();
+  await expect(page.getByRole("article").first()).toBeVisible();
 });

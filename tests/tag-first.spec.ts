@@ -53,7 +53,53 @@ test("tag-first discovery combines filters, survives reload and preserves old li
   await page.getByLabel("Search tags", { exact: true }).fill("Tech");
   await expect(
     page.getByRole("link", { name: "Tech", exact: true }),
-  ).toHaveAttribute("href", "/directory?tags=" + tech.id);
+  ).toHaveAttribute("href", "/?tags=" + tech.id);
+});
+
+test("anonymous visitors can save tags and use them from the left menu", async ({
+  page,
+  request,
+}) => {
+  const catalog = await (await request.get("/api/tags")).json();
+  const tech = catalog.items.find((t: { name: string }) => t.name === "Tech");
+  expect(tech).toBeTruthy();
+
+  await page.goto("/tags");
+  await page.getByLabel("Search tags", { exact: true }).fill("Tech");
+  const save = page.getByRole("button", {
+    name: "Save tag: Tech",
+    exact: true,
+  });
+  await expect(save).toHaveAttribute("aria-pressed", "false");
+  await save.click();
+  await expect(
+    page.getByRole("button", { name: "Remove saved tag: Tech", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Remove saved tag: Tech", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/");
+  const sections = page.getByRole("navigation", { name: "Sections" });
+  await expect(sections.getByRole("link")).toHaveText([
+    "Explore",
+    "Browse tags",
+    "Events",
+    "Tech",
+    "Saved entries",
+    "Add entry",
+    "Donate",
+    "About",
+  ]);
+  await expect(
+    sections.getByRole("link", { name: "Tech", exact: true }),
+  ).toHaveAttribute("href", "/?tags=" + tech.id);
+  for (const name of ["Businesses", "Nonprofits", "Signal connections"]) {
+    await expect(sections.getByRole("link", { name, exact: true })).toHaveCount(
+      0,
+    );
+  }
 });
 
 test("contributors select existing tags and cannot access editor tools", async ({

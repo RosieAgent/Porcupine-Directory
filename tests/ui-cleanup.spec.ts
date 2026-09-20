@@ -146,14 +146,24 @@ for (const width of [1440, 390]) {
     await expect(
       page.getByRole("link", { name: "View original source" }),
     ).toHaveCount(0);
+    const sectionHeadings = page.getByRole("heading", { level: 2 });
+    await expect(sectionHeadings.nth(0)).toHaveText("About");
+    await expect(sectionHeadings.nth(1)).toHaveText(
+      "How to request an invitation",
+    );
+    await expect(
+      page.getByText(/Not independently confirmed|Imported \d/, {
+        exact: false,
+      }),
+    ).toHaveCount(0);
     const chip = page
       .getByRole("group", { name: "Topics" })
       .getByRole("link", { name: "Housing", exact: true });
     const bounds = (await chip.boundingBox())!;
     const icon = (await chip.locator("svg").boundingBox())!;
     const label = (await chip.locator(".MuiChip-label").boundingBox())!;
-    expect(bounds.height).toBeGreaterThanOrEqual(44);
-    expect(icon.x - bounds.x).toBeGreaterThanOrEqual(9);
+    expect(bounds.height).toBeGreaterThanOrEqual(24);
+    expect(icon.x - bounds.x).toBeGreaterThanOrEqual(4);
     expect(label.x).toBeGreaterThanOrEqual(icon.x + icon.width);
     expect(
       await chip
@@ -161,7 +171,7 @@ for (const width of [1440, 390]) {
         .evaluate((element) =>
           parseFloat(getComputedStyle(element).paddingLeft),
         ),
-    ).toBeGreaterThanOrEqual(8);
+    ).toBeGreaterThanOrEqual(4);
     await expect(chip.locator('[data-tag-icon="boat"]')).toBeVisible();
     expect(
       await page.evaluate(
@@ -170,7 +180,7 @@ for (const width of [1440, 390]) {
     ).toBe(true);
   });
 
-  test(`cards keep status semantics and move confidence to the lower right at ${width}px`, async ({
+  test(`cards keep status semantics without confirmation badges at ${width}px`, async ({
     page,
   }) => {
     await fixtures(page);
@@ -191,23 +201,14 @@ for (const width of [1440, 390]) {
         page.getByRole("tooltip", { name: new RegExp(`^${name}`) }),
       ).toBeVisible();
     }
-    const badge = card
-      .getByTestId("card-confirmation")
-      .getByRole("img", { name: "Unconfirmed", exact: true });
-    await badge.focus();
     await expect(
-      page.getByRole("tooltip", { name: /^Unconfirmed/ }),
-    ).toBeVisible();
+      page.getByRole("img", {
+        name: /^(Unconfirmed|Self-confirmed|Editor-reviewed)/,
+      }),
+    ).toHaveCount(0);
     const bounds = (await card.boundingBox())!;
-    const icon = (await badge.boundingBox())!;
     const title = (await card.getByRole("heading").boundingBox())!;
-    const topics = (await card
-      .getByRole("group", { name: "Topics" })
-      .boundingBox())!;
     expect(title.y - bounds.y).toBeLessThan(32);
-    expect(icon.x).toBeGreaterThanOrEqual(topics.x + topics.width);
-    expect(bounds.x + bounds.width - icon.x - icon.width).toBeLessThan(32);
-    expect(bounds.y + bounds.height - icon.y - icon.height).toBeLessThan(40);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

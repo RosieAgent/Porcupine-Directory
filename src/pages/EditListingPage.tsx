@@ -24,7 +24,6 @@ import { request, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
 import { Page, Loading, ErrorState } from "../components/Page";
 import { ListingForm } from "../components/ListingForm";
-import { ConfirmationBadges } from "../components/ConfirmationBadges";
 import { IconAction, IconLink } from "../components/IconAction";
 export default function EditListingPage() {
   const { id = "" } = useParams();
@@ -107,7 +106,6 @@ export default function EditListingPage() {
       }
     >
       <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-        <ConfirmationBadges listing={listing} />
         <Typography>
           {listing.status === "archived"
             ? "Hidden"

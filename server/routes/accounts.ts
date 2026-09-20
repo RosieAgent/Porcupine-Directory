@@ -60,6 +60,55 @@ accountRoutes.delete("/saved", async (req, res) => {
   ]);
   res.json({ ok: true });
 });
+accountRoutes.get("/saved-tags", async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT s.tag_id AS id
+     FROM account_saved_tags s
+     JOIN tag_definitions t ON t.id=s.tag_id
+     WHERE s.account_id=$1 AND NOT t.retired AND t.merged_into IS NULL
+     ORDER BY s.created_at,s.tag_id`,
+    [req.account!.id],
+  );
+  res.json({ ids: rows.map((row) => row.id) });
+});
+accountRoutes.put("/saved-tags/:id", async (req, res) => {
+  const id = z.uuid().parse(req.params.id);
+  await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const available = await client.query(
+      "SELECT 1 FROM tag_definitions WHERE id=$1 AND NOT retired AND merged_into IS NULL",
+      [id],
+    );
+    if (!available.rowCount)
+      throw new HttpError(404, "That tag is no longer available.");
+    const existing = await client.query(
+      "SELECT 1 FROM account_saved_tags WHERE account_id=$1 AND tag_id=$2",
+      [req.account!.id, id],
+    );
+    if (existing.rowCount) return;
+    const count = await client.query(
+      "SELECT count(*)::int AS n FROM account_saved_tags WHERE account_id=$1",
+      [req.account!.id],
+    );
+    if (count.rows[0].n >= 100)
+      throw new HttpError(400, "You can save up to 100 tags.");
+    await client.query(
+      `INSERT INTO account_saved_tags(account_id,tag_id)
+       SELECT $1,id FROM tag_definitions
+       WHERE id=$2 AND NOT retired AND merged_into IS NULL
+       ON CONFLICT DO NOTHING`,
+      [req.account!.id, id],
+    );
+  });
+  res.json({ ok: true });
+});
+accountRoutes.delete("/saved-tags/:id", async (req, res) => {
+  await pool.query(
+    "DELETE FROM account_saved_tags WHERE account_id=$1 AND tag_id=$2",
+    [req.account!.id, z.uuid().parse(req.params.id)],
+  );
+  res.json({ ok: true });
+});
 export const administration = Router();
 administration.use(requireAdmin, (_req, res, next) => {
   res.set("Cache-Control", "no-store");

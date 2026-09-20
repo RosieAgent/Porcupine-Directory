@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router";
 import Add from "@mui/icons-material/Add";
+import Bookmark from "@mui/icons-material/Bookmark";
+import BookmarkBorder from "@mui/icons-material/BookmarkBorder";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
 import Merge from "@mui/icons-material/Merge";
@@ -24,6 +26,7 @@ import { tagIconKeys } from "../../shared/tags";
 import type { TagDefinition } from "../../shared/tags";
 import { queries, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
+import { useSavedTags } from "../state/SavedTagsProvider";
 import { Page, ErrorState, Loading } from "../components/Page";
 import { StaffVerification } from "../components/StaffVerification";
 import { IconAction } from "../components/IconAction";
@@ -32,6 +35,11 @@ import { TagLabel } from "../components/TopicTags";
 export default function TagsPage() {
   const staffPage = useLocation().pathname === "/editor/tags";
   const { user } = useAuth();
+  const {
+    ids: savedTagIds,
+    toggle: toggleSavedTag,
+    busy: savedTagsBusy,
+  } = useSavedTags();
   const staff = !!user && user.role !== "user" && !user.privilegesSuspended;
   const result = useQuery(queries.tags);
   const client = useQueryClient();
@@ -274,13 +282,31 @@ export default function TagsPage() {
                     >
                       <Link
                         component={RouterLink}
-                        to={"/directory?tags=" + tag.id}
+                        to={"/?tags=" + tag.id}
                         sx={{ flex: 1 }}
                       >
                         <TagLabel name={tag.name} />
                       </Link>
                       <Typography variant="caption">{tag.count}</Typography>
                       {tag.retired && <Chip size="small" label="Retired" />}
+                      {!staffPage && (
+                        <IconAction
+                          label={
+                            savedTagIds.includes(tag.id)
+                              ? "Remove saved tag: " + tag.name
+                              : "Save tag: " + tag.name
+                          }
+                          aria-pressed={savedTagIds.includes(tag.id)}
+                          disabled={savedTagsBusy}
+                          onClick={() => toggleSavedTag(tag.id)}
+                        >
+                          {savedTagIds.includes(tag.id) ? (
+                            <Bookmark />
+                          ) : (
+                            <BookmarkBorder />
+                          )}
+                        </IconAction>
+                      )}
                       {staffPage && (
                         <IconAction
                           label={"Edit tag: " + tag.name}

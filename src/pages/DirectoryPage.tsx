@@ -77,7 +77,7 @@ export default function DirectoryPage() {
         <Alert severity="info">
           This shared link retains its legacy{" "}
           {kindLabels[section].toLowerCase()} selection.{" "}
-          <Link component={RouterLink} to="/directory">
+          <Link component={RouterLink} to="/">
             Explore all entries by tag
           </Link>
           .

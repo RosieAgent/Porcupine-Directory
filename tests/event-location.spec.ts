@@ -80,7 +80,7 @@ test("missing and virtual event locations do not offer maps", async ({
   }
 });
 
-test("unknown access uses the confirmation icon on all entry surfaces", async ({
+test("unknown access does not add a confirmation icon to entry surfaces", async ({
   page,
   request,
 }) => {
@@ -102,7 +102,7 @@ test("unknown access uses the confirmation icon on all entry surfaces", async ({
     await page.goto(path);
     await expect(
       page.getByRole("img", { name: "Unconfirmed", exact: true }),
-    ).toHaveCount(5);
+    ).toHaveCount(0);
     await expect(
       page.getByText("Access not confirmed", { exact: true }),
     ).toHaveCount(0);
@@ -114,7 +114,7 @@ test("unknown access uses the confirmation icon on all entry surfaces", async ({
   await page.goto(`/listings/${listing.id}`);
   await expect(
     page.getByRole("img", { name: "Unconfirmed", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     page.getByText("Access not confirmed", { exact: true }),
   ).toHaveCount(0);

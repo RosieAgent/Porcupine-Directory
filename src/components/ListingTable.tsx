@@ -13,7 +13,6 @@ import {
 import { Link as RouterLink } from "react-router";
 import type { Listing } from "../../shared/contracts";
 import { ConnectionLinks } from "./ConnectionLinks";
-import { ConfirmationBadges } from "./ConfirmationBadges";
 import { EntryStatus } from "./EntryStatus";
 import { SaveButton } from "./ListingCard";
 import { TopicTags } from "./TopicTags";
@@ -72,11 +71,8 @@ export function ListingTable({ items }: { items: Listing[] }) {
                   >
                     {item.name}
                   </Link>
-                  <Stack sx={{ flexShrink: 0 }}>
-                    <ConfirmationBadges listing={item} />
-                  </Stack>
                 </Stack>
-                <EntryStatus listing={item} confirmation={false} />
+                <EntryStatus listing={item} />
                 <Typography
                   variant="caption"
                   component="div"
