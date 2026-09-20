@@ -83,6 +83,8 @@ This is a local preview, not production. Accounts, recovery phrases, owner editi
 
 The repository is maintained at [RosieAgent/Porcupine-Directory](https://github.com/RosieAgent/Porcupine-Directory). Production deployment, Hostinger plan verification, persistent secrets, backups, independent security review, and moderation/privacy operations remain before public launch. The production Compose override separates migration and runtime database roles; its deployment values are still required. Compose credentials are for loopback-only development.
 
+Listing service-account tokens, scopes, rotation and the audited single-listing API are documented in [service-accounts.md](docs/service-accounts.md). Events remain FSP-managed.
+
 ## Set up your administrator account
 
 **Current preview:** the approved `STAFF_AUTH_MODE=session` policy permits authorized signed-in staff actions without periodic password re-entry. Saved recovery, role/suspension checks, session revocation, CSRF and audit remain; account-security changes still require recent sign-in. Passkeys remain hidden. See [current ownership and staff policy](docs/staff-session-and-owner-dialog.md).

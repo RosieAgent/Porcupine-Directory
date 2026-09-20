@@ -46,6 +46,8 @@ import { AdminUsers, type AdminUser } from "../components/AdminUsers";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import { EmailSettings } from "../components/EmailSettings";
 import SendOutlined from "@mui/icons-material/SendOutlined";
+import { AdminAudit } from "../components/AdminAudit";
+import { AdminServiceAccounts } from "../components/AdminServiceAccounts";
 
 export function RecoveryPhrase({
   phrase,
@@ -895,7 +897,11 @@ function Administration() {
           )}
         </Stack>
       </Paper>
+      <AdminServiceAccounts />
       <EventSyncDiagnostics />
+      <Button component={Link} to="/admin/audit">
+        Audit log and listing restore
+      </Button>
     </Page>
   );
 }
@@ -934,6 +940,14 @@ export default function AccountPages() {
   if (pathname === "/admin")
     return user.role === "administrator" ? (
       <Administration />
+    ) : (
+      <Page title="Administrator access required">
+        <Typography>This page is restricted to administrators.</Typography>
+      </Page>
+    );
+  if (pathname === "/admin/audit")
+    return user.role === "administrator" ? (
+      <AdminAudit />
     ) : (
       <Page title="Administrator access required">
         <Typography>This page is restricted to administrators.</Typography>

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import {
   listingQuerySchema,
+  serviceListingPatchSchema,
   submissionSchema,
 } from "../../shared/contracts.js";
 import { pool } from "../db.js";
@@ -26,6 +27,8 @@ import {
   transaction,
   limit,
   requireCurrentSession,
+  setAuditContext,
+  audit,
 } from "../security.js";
 
 function validateLocation(value: string, previous = "") {
@@ -37,7 +40,7 @@ function validateLocation(value: string, previous = "") {
 }
 
 export const listings = Router();
-const columns = `id, kind, name, summary, description, url, contact_url AS "contactUrl", location, tags,
+export const publicListingColumns = `id, kind, name, summary, description, url, contact_url AS "contactUrl", location, tags,
   access_mode AS "accessMode", access_instructions AS "accessInstructions", source_name AS "sourceName",
   source_url AS "sourceUrl", last_confirmed_at AS "lastConfirmedAt", imported_at AS "importedAt", links,
   version,status,connections,self_confirmed_at AS "selfConfirmedAt",editor_reviewed_at AS "editorReviewedAt",
@@ -62,7 +65,7 @@ listings.get("/manage", requireUser, async (req, res) => {
     params,
   );
   const { rows } = await pool.query(
-    `SELECT ${columns} FROM listings WHERE ${filter} ORDER BY updated_at DESC,id LIMIT 24 OFFSET $${params.length + 1}`,
+    `SELECT ${publicListingColumns} FROM listings WHERE ${filter} ORDER BY updated_at DESC,id LIMIT 24 OFFSET $${params.length + 1}`,
     [...params, (page - 1) * 24],
   );
   res.json({ items: rows, total: count.rows[0].total, page, pageSize: 24 });
@@ -84,7 +87,7 @@ listings.get("/:id/permissions", async (req, res) => {
 listings.get("/:id/edit", requireUser, async (req, res) => {
   res.set("Cache-Control", "no-store");
   const { rows } = await pool.query(
-    `SELECT ${columns},owner_id FROM listings WHERE id=$1`,
+    `SELECT ${publicListingColumns},owner_id FROM listings WHERE id=$1`,
     [z.uuid().parse(req.params.id)],
   );
   if (!rows[0]) throw new HttpError(404, "Entry not found.");
@@ -114,10 +117,7 @@ async function context(
   action: string,
   reason = "",
 ) {
-  await client.query(
-    "SELECT set_config('app.actor',$1,true),set_config('app.action',$2,true),set_config('app.reason',$3,true)",
-    [req.account?.id ?? "", action, reason],
-  );
+  await setAuditContext(client, req, action, reason);
 }
 async function lockedEntry(client: PoolClient, req: Request, version: number) {
   // Lock the account too: concurrent role revocation/recovery cannot authorize a stale edit.
@@ -205,6 +205,80 @@ export async function updateContent(
       references ? JSON.stringify(references) : null,
     ],
   );
+}
+export async function applyServiceListingPatch(
+  client: PoolClient,
+  req: Request,
+  id: string,
+  data: z.infer<typeof serviceListingPatchSchema>,
+) {
+  const { rows } = await client.query(
+    "SELECT * FROM listings WHERE id=$1 FOR UPDATE",
+    [id],
+  );
+  const entry = rows[0];
+  if (!entry) throw new HttpError(404, "Entry not found.");
+  if (entry.version !== data.expectedVersion)
+    throw new HttpError(
+      409,
+      "This entry changed. Reload it and review the latest version before saving.",
+    );
+  const current = submissionSchema.parse({
+    ...entry,
+    url: entry.url || "",
+    location: entry.location || "",
+    contactUrl: entry.contact_url || "",
+    accessMode: entry.access_mode,
+    accessInstructions: entry.access_instructions,
+    connections: entry.connections ?? legacyConnections(entry),
+    seekingOrganizer: entry.seeking_organizer ?? false,
+    publicPhone: entry.public_phone ?? "",
+    publicEmail: entry.public_email ?? "",
+    publicAddress: entry.public_address ?? "",
+    openingHours: entry.opening_hours ?? "",
+  });
+  const next = submissionSchema.parse({ ...current, ...data.changes });
+  next.kind = entry.kind;
+  if (!Object.prototype.hasOwnProperty.call(data.changes, "connections"))
+    next.connections = undefined;
+  next.tags = await canonicalTags(client, next.tags, entry.tags);
+  validateLocation(next.location, entry.location ?? "");
+  const changedFields = Object.keys(data.changes);
+  const details = {
+    ...data.context,
+    changedFields,
+    serviceAccount: req.serviceAccount?.name,
+  };
+  await setAuditContext(
+    client,
+    req,
+    "service.listing.updated",
+    data.reason,
+    details,
+  );
+  await updateContent(
+    client,
+    entry.id,
+    next,
+    entry,
+    Object.prototype.hasOwnProperty.call(data.changes, "referenceSources")
+      ? data.changes.referenceSources
+      : undefined,
+  );
+  await audit(
+    client,
+    req.serviceAccount?.id ?? null,
+    entry.id,
+    "listing.updated",
+    {
+      actorType: "service_account",
+      subjectType: "listing",
+      requestId: req.requestId,
+      reason: data.reason,
+      details,
+    },
+  );
+  return { id: entry.id, version: entry.version + 1 };
 }
 listings.put("/:id", requireUser, async (req, res) => {
   const data = editSchema.parse(req.body);
@@ -419,7 +493,7 @@ listings.get("/", async (req, res) => {
   const limit = bind(pageSize);
   const offset = bind((page - 1) * pageSize);
   const result = await pool.query(
-    `SELECT ${columns} FROM listings WHERE ${filter} ORDER BY listing_has_joining_details(connections,access_instructions,public_phone,public_email) DESC, ${order} LIMIT ${limit} OFFSET ${offset}`,
+    `SELECT ${publicListingColumns} FROM listings WHERE ${filter} ORDER BY listing_has_joining_details(connections,access_instructions,public_phone,public_email) DESC, ${order} LIMIT ${limit} OFFSET ${offset}`,
     params,
   );
   res.json({ items: result.rows, total: count.rows[0].total, page, pageSize });
@@ -431,7 +505,7 @@ listings.get("/:id", async (req, res) => {
     return;
   }
   const result = await pool.query(
-    `SELECT ${columns} FROM listings WHERE id=$1 AND status='published'`,
+    `SELECT ${publicListingColumns} FROM listings WHERE id=$1 AND status='published'`,
     [req.params.id],
   );
   if (!result.rows.length) {

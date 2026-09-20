@@ -37,6 +37,7 @@ services:
       - "127.0.0.1:${APP_HOST_PORT:-4350}:3000"
     environment:
       DATABASE_URL: ${APP_DATABASE_URL:?Set APP_DATABASE_URL in .env.production}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-production}
       RUN_MIGRATIONS: "false"
       APP_ORIGIN: ${APP_ORIGIN:?Set the canonical HTTPS APP_ORIGIN in .env.production}
       SESSION_SECRET: ${SESSION_SECRET:?Set a persistent SESSION_SECRET in .env.production}

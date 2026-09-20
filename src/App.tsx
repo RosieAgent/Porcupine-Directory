@@ -60,6 +60,7 @@ const router = createBrowserRouter([
         "account/security",
         "account/entries",
         "admin",
+        "admin/audit",
         "editor",
       ].map((path) => ({
         path,

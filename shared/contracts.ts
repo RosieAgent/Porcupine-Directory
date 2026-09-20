@@ -86,12 +86,69 @@ export const submissionSchema = z.object({
   accessInstructions: z.string().trim().max(1000).default(""),
 });
 export type Submission = z.infer<typeof submissionSchema>;
+export const referenceSourceSchema = z.object({
+  label: z.string().trim().min(1).max(160),
+  url: webUrl,
+  checkedAt: z.iso.datetime(),
+});
+export const auditContextSchema = z
+  .object({
+    who: z.string().trim().max(200).optional(),
+    what: z.string().trim().max(500).optional(),
+    when: z.iso.datetime().optional(),
+    where: z.string().trim().max(200).optional(),
+    why: z.string().trim().max(500).optional(),
+    how: z.string().trim().max(1000).optional(),
+    sourceUrl: webUrl.optional(),
+    sourceLabel: z.string().trim().max(160).optional(),
+  })
+  .strict();
+const serviceListingChangesSchema = z
+  .object({
+    name: z.string().trim().min(2).max(160).optional(),
+    summary: z.string().trim().min(10).max(280).optional(),
+    description: z.string().trim().max(4000).optional(),
+    url: z.union([webUrl, z.literal("")]).optional(),
+    contactUrl: z.union([webUrl, z.literal("")]).optional(),
+    location: z.string().trim().max(160).optional(),
+    tags: z.array(z.string().trim().min(1).max(80)).max(12).optional(),
+    accessMode: z.enum(accessModes).optional(),
+    accessInstructions: z.string().trim().max(1000).optional(),
+    connections: connectionsSchema.optional(),
+    lifecycle: lifecycleSchema.optional(),
+    seekingOrganizer: z.boolean().optional(),
+    publicPhone: z
+      .string()
+      .trim()
+      .max(40)
+      .regex(
+        /^[+0-9(). -]*$/,
+        "Use a public telephone number, without extensions.",
+      )
+      .refine(
+        (value) => !value || value.replace(/\D/g, "").length >= 7,
+        "Use a complete public phone number.",
+      )
+      .optional(),
+    publicEmail: z.union([z.email().max(254), z.literal("")]).optional(),
+    publicAddress: z.string().trim().max(300).optional(),
+    openingHours: z.string().trim().max(500).optional(),
+    referenceSources: z.array(referenceSourceSchema).max(20).optional(),
+  })
+  .strict()
+  .refine((changes) => Object.keys(changes).length > 0, {
+    message: "Supply at least one listing field to change.",
+  });
+export const serviceListingPatchSchema = z.object({
+  expectedVersion: z.number().int().positive(),
+  changes: serviceListingChangesSchema,
+  reason: z.string().trim().min(3).max(500),
+  context: auditContextSchema.optional(),
+});
 export const listingSchema = z.object({
   ...entryContextSchema.shape,
   missingJoiningDetails: z.boolean(),
-  referenceSources: z.array(
-    z.object({ label: z.string(), url: webUrl, checkedAt: z.iso.datetime() }),
-  ),
+  referenceSources: z.array(referenceSourceSchema),
   id: z.uuid(),
   kind: z.enum(listingKinds),
   name: z.string(),

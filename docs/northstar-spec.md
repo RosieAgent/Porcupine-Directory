@@ -6,6 +6,12 @@ Implementation update (September 19 UTC): the local preview uses the explicitly 
 
 Delivery update: typed multiple connections, connection filtering, table view, explicit proposals/seeking-organizer flags, missing-details badges, confirmation-first ordering, public contact fields, topic-icon presentation and legacy categories are implemented. The latest agreed direction replaces top-level categories with curated tags and connection-derived platform discovery; this migration is **queued, not shipped**. Private ownership assignment now requires recipient acceptance; its workflow and the controlled tag catalog remain to be implemented. See the [next-batch queue](tag-first-next-batch.md) and [delivery checklist](directory-improvements.md). Member attestations and community evolution remain discussion items; Signal ingestion/AI assistance is beyond v0.1.
 
+## Delivery and security posture through v1.0
+
+Until v1.0, prioritize fast, reversible delivery over adding process. Keep the baseline protections already implemented—server-side authorization, CSRF/origin checks, rate limits, session revocation, audit events, private account boundaries and secret separation—in every release. Do not introduce heavyweight review gates, release ceremony or infrastructure work solely to improve security if it materially slows the product loop.
+
+Low-friction security fixes can still ship when they fit naturally into feature work. Track deeper hardening as a post-v1.0 backlog, including stronger branch and environment protections, immutable GitHub Actions pinning, CODEOWNERS/review ownership for workflow and deployment files, a documented threat model or independent review, deployment-key rotation, backup/restore drills and deeper monitoring. This is a sequencing decision—not permission to weaken current safeguards or knowingly ship a critical vulnerability.
+
 ## Northstar
 
 Help people find their way into a freer New Hampshire community without requiring them to already know the right person, channel, or event.
@@ -45,8 +51,9 @@ An editor can:
 2. Globally review, edit, publish or hide entries; review badges are independent of self-confirmation and visibility. Scoped editor permissions are deferred beyond v0.1.
 3. Inspect revisions and preview/restore previous content as a new revision, without overwriting concurrent changes.
 4. Administrators privately browse/search accounts and assign/revoke global editors. Authorized staff actions use the active signed-in session without periodic password re-entry. Keep role checks, audit, saved-recovery prerequisites and recovery suspension; account-security changes retain recent sign-in checks. Events remain source-managed.
-5. Maintain proposed/unowned entries directly. Assign private entry ownership using a staff-only searchable account-picker dialog, with recipient acceptance before access transfers. A No account option permits an optional private manager alias but grants no user editing rights. Never expose this account list or manager label publicly.
-6. Planned: manage a shared tag catalog (name plus icon/emoji). Contributors select existing tags for their entries but cannot create or modify tag definitions.
+5. Administrators may issue and revoke environment-bound service tokens for trusted automation. A listing-only service account may read and immediately update one listing at a time with explicit scopes, a reason, optional change context, optimistic version checks, idempotency and revision-backed restore. Events remain FSP-managed; service accounts cannot delete, batch, publish, hide, manage users or access the database directly.
+6. Maintain proposed/unowned entries directly. Assign private entry ownership using a staff-only searchable account-picker dialog, with recipient acceptance before access transfers. A No account option permits an optional private manager alias but grants no user editing rights. Never expose this account list or manager label publicly.
+7. Planned: manage a shared tag catalog (name plus icon/emoji). Contributors select existing tags for their entries but cannot create or modify tag definitions.
 
 ## Explicit non-goals for v0.1
 

@@ -36,6 +36,7 @@ import { getPublications, startPublicationScheduler } from "./publications.js";
 import { PORCUPINE_REPORT_ID } from "../shared/publications.js";
 import { createSharePreviewHandler } from "./share-preview.js";
 import { eventSyncDiagnostics } from "./routes/event-sync-diagnostics.js";
+import { serviceListings } from "./routes/service-listings.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -53,6 +54,9 @@ app.use(
 );
 app.use(cors({ origin: ["http://localhost:5173", "http://127.0.0.1:5173"] }));
 app.use(express.json({ limit: "100kb" }));
+// Service-token endpoints use Authorization headers rather than browser
+// sessions, cookies, CSRF tokens or cross-origin access.
+app.use("/api/v1", serviceListings);
 app.use("/api", sessions, loadAccount, checkOrigin, csrfSynchronisedProtection);
 app.use("/api/auth", auth);
 app.use("/api/account", accountRoutes);

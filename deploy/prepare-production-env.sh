@@ -12,6 +12,8 @@ session_secret=$(openssl rand -hex 48)
 
 umask 077
 cat > "$env_file" <<EOF
+APP_ENVIRONMENT=production
+
 POSTGRES_DB=porcupine_directory
 POSTGRES_USER=porcupine_admin
 POSTGRES_PASSWORD=$postgres_password

@@ -8,6 +8,22 @@ import { pool } from "./db.js";
 import type { Account } from "../shared/auth.js";
 import { passkeysEnabled, staffAuthMode } from "./features.js";
 
+export type ActorType = "account" | "service_account" | "system";
+export interface ServiceAccountIdentity {
+  id: string;
+  name: string;
+  environment: "development" | "staging" | "production";
+  scopes: string[];
+}
+export interface AuditOptions {
+  actorType?: ActorType;
+  subjectType?: string;
+  requestId?: string;
+  reason?: string;
+  details?: Record<string, unknown>;
+  outcome?: "success" | "failure";
+}
+
 declare module "express-session" {
   interface SessionData {
     accountId?: string;
@@ -23,6 +39,8 @@ declare global {
   namespace Express {
     interface Request {
       account?: Account;
+      serviceAccount?: ServiceAccountIdentity;
+      requestId?: string;
     }
   }
 }
@@ -243,10 +261,57 @@ export async function audit(
   actor: string | null,
   subject: string,
   action: string,
+  options: AuditOptions = {},
 ) {
   await client.query(
-    "INSERT INTO security_audit(actor_id,subject_id,action) VALUES ($1,$2,$3)",
-    [actor, subject, action],
+    `INSERT INTO security_audit(
+      actor_id,actor_type,subject_id,subject_type,action,request_id,reason,details,outcome
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)`,
+    [
+      actor,
+      options.actorType ?? (actor ? "account" : "system"),
+      subject,
+      options.subjectType ?? "account",
+      action,
+      options.requestId ?? null,
+      options.reason ?? "",
+      JSON.stringify(options.details ?? {}),
+      options.outcome ?? "success",
+    ],
+  );
+}
+export function requestActor(req: Request) {
+  return req.serviceAccount
+    ? ({
+        type: "service_account" as const,
+        id: req.serviceAccount.id,
+      } satisfies {
+        type: ActorType;
+        id?: string;
+      })
+    : ({ type: "account" as const, id: req.account?.id } satisfies {
+        type: ActorType;
+        id?: string;
+      });
+}
+export async function setAuditContext(
+  client: PoolClient,
+  req: Request,
+  action: string,
+  reason = "",
+  details: Record<string, unknown> = {},
+) {
+  const actor = requestActor(req);
+  await client.query(
+    "SELECT set_config('app.actor',$1,true),set_config('app.actor_type',$2,true),set_config('app.request_id',$3,true),set_config('app.action',$4,true),set_config('app.reason',$5,true),set_config('app.details',$6,true)",
+    [
+      actor.id ?? "",
+      actor.type,
+      req.requestId ?? "",
+      action,
+      reason,
+      JSON.stringify(details),
+    ],
   );
 }
 export async function requireCurrentSession(client: PoolClient, req: Request) {

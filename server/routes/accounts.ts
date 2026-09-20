@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { pool } from "../db.js";
 import {
@@ -11,6 +12,12 @@ import {
 } from "../security.js";
 import { usernameSchema } from "../../shared/auth.js";
 import { staffAuthMode } from "../features.js";
+import {
+  insertServiceAccount,
+  runtimeEnvironment,
+  serviceScopes,
+  validServiceName,
+} from "../service-accounts.js";
 export const accountRoutes = Router();
 accountRoutes.use(requireUser, (_req, res, next) => {
   res.set("Cache-Control", "no-store");
@@ -254,6 +261,92 @@ administration.put("/role", async (req, res) => {
   });
   res.json({ ok: true });
 });
+administration.get("/service-accounts", async (_req, res) => {
+  const environment = runtimeEnvironment();
+  const { rows } = await pool.query(
+    `SELECT id,name,environment,scopes,token_prefix AS "tokenPrefix",
+      expires_at AS "expiresAt",revoked_at AS "revokedAt",created_at AS "createdAt",
+      last_used_at AS "lastUsedAt"
+     FROM service_accounts WHERE environment=$1 ORDER BY created_at DESC,id DESC`,
+    [environment],
+  );
+  res.json({ environment, items: rows });
+});
+administration.post("/service-accounts", async (req, res) => {
+  const data = z
+    .object({
+      name: z.string().trim().min(3).max(80),
+      expiresInDays: z.number().int().min(1).max(365).default(90),
+      reason: z.string().trim().min(3).max(500),
+      context: z
+        .object({
+          purpose: z.string().trim().max(500).optional(),
+        })
+        .strict()
+        .optional(),
+    })
+    .strict()
+    .parse(req.body);
+  const name = validServiceName(data.name);
+  const environment = runtimeEnvironment();
+  const requestId = randomUUID();
+  res.set("X-Request-ID", requestId);
+  let issued: Awaited<ReturnType<typeof insertServiceAccount>>;
+  try {
+    issued = await transaction(async (client) => {
+      await requireCurrentSession(client, req);
+      const existing = await client.query(
+        "SELECT 1 FROM service_accounts WHERE name=$1 AND environment=$2",
+        [name, environment],
+      );
+      if (existing.rowCount)
+        throw new HttpError(
+          409,
+          "That service name already exists in this environment.",
+        );
+      const created = await insertServiceAccount(client, {
+        name,
+        environment,
+        expiresInDays: data.expiresInDays,
+      });
+      await audit(
+        client,
+        req.account!.id,
+        created.serviceAccount.id,
+        "service-account.created",
+        {
+          actorType: "account",
+          subjectType: "service_account",
+          requestId,
+          reason: data.reason,
+          details: {
+            name,
+            environment,
+            scopes: serviceScopes,
+            expiresAt: created.serviceAccount.expiresAt,
+            ...(data.context ? { context: data.context } : {}),
+          },
+        },
+      );
+      return created;
+    });
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "23505"
+    )
+      throw new HttpError(
+        409,
+        "That service name already exists in this environment.",
+      );
+    throw error;
+  }
+  res
+    .status(201)
+    .json({ token: issued.token, serviceAccount: issued.serviceAccount });
+});
 administration.get("/audit", async (req, res) => {
   const page = z.coerce
     .number()
@@ -263,8 +356,38 @@ administration.get("/audit", async (req, res) => {
     .default(1)
     .parse(req.query.page);
   const { rows } = await pool.query(
-    `SELECT id::text,actor_id AS "actorId",subject_id AS "subjectId",action,created_at AS "createdAt" FROM security_audit ORDER BY id DESC LIMIT 50 OFFSET $1`,
+    `SELECT s.id::text,s.actor_id AS "actorId",s.actor_type AS "actorType",s.subject_id AS "subjectId",s.subject_type AS "subjectType",s.action,s.request_id AS "requestId",s.reason,s.details,s.outcome,s.created_at AS "createdAt",
+      COALESCE(a.username,sa.name) AS "actorName"
+     FROM security_audit s
+     LEFT JOIN accounts a ON s.actor_type='account' AND a.id=s.actor_id
+     LEFT JOIN service_accounts sa ON s.actor_type='service_account' AND sa.id=s.actor_id
+     ORDER BY s.id DESC LIMIT 50 OFFSET $1`,
     [(page - 1) * 50],
   );
   res.json({ items: rows, page });
+});
+administration.get("/audit/listings", async (req, res) => {
+  const page = z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(10000)
+    .default(1)
+    .parse(req.query.page);
+  const { rows } = await pool.query(
+    `SELECT r.listing_id AS "listingId",l.name,r.version,r.action,r.reason,r.details,
+      r.actor_id AS "actorId",r.actor_type AS "actorType",r.request_id AS "requestId",
+      (r.before_data-'owner_id') AS before,(r.after_data-'owner_id') AS after,
+      (to_jsonb(l)-'search_vector'-'owner_id') AS current,
+      r.created_at AS "createdAt",
+      l.version AS "currentVersion",COALESCE(a.username,sa.name) AS "actorName"
+     FROM listing_revisions r
+     JOIN listings l ON l.id=r.listing_id
+     LEFT JOIN accounts a ON r.actor_type='account' AND a.id=r.actor_id
+     LEFT JOIN service_accounts sa ON r.actor_type='service_account' AND sa.id=r.actor_id
+     ORDER BY r.created_at DESC,r.listing_id,r.version DESC
+     LIMIT 25 OFFSET $1`,
+    [(page - 1) * 25],
+  );
+  res.json({ items: rows, page, pageSize: 25 });
 });
