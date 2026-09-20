@@ -3,9 +3,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
-const url =
-  process.env.TEST_DATABASE_URL ??
-  "postgres://porcupine:porcupine@127.0.0.1:5438/porcupine_directory";
+const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+if (!url) throw new Error("Set TEST_DATABASE_URL or DATABASE_URL for tests.");
 const schema = "auth_test_" + randomUUID().replaceAll("-", "");
 const admin = new pg.Pool({ connectionString: url });
 const scoped = new URL(url);
@@ -14,6 +13,9 @@ process.env.DATABASE_URL = scoped.toString();
 process.env.DATABASE_SCHEMA = schema;
 process.env.START_SERVER = "false";
 process.env.FSP_SYNC_ENABLED = "false";
+// Keep the integration fixture independent of a developer's Mailpit preview mode.
+process.env.SMTP_MODE = "smtp";
+process.env.STAFF_AUTH_MODE = "passkey";
 // Exercise the preserved v0.2 opt-in path in this isolated schema.
 process.env.PASSKEYS_ENABLED = "true";
 process.env.APP_ORIGIN = "http://localhost:4351";

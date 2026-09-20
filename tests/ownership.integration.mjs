@@ -7,9 +7,8 @@ import express from "express";
 import { ZodError } from "zod";
 import pg from "pg";
 
-const url =
-  process.env.TEST_DATABASE_URL ??
-  "postgres://porcupine:porcupine@127.0.0.1:5438/porcupine_directory";
+const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+if (!url) throw new Error("Set TEST_DATABASE_URL or DATABASE_URL for tests.");
 const schema = "ownership_test_" + randomUUID().replaceAll("-", "");
 const admin = new pg.Pool({ connectionString: url });
 const scoped = new URL(url);

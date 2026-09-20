@@ -1,12 +1,10 @@
 import { pool } from "./db.js";
-import { migrate } from "./migrate.js";
 import { transaction, audit } from "./security.js";
 import { usernameSchema } from "../shared/auth.js";
 import { staffAuthMode } from "./features.js";
 // Host access is the trust boundary. Never promote the first public signup automatically.
 try {
   const username = usernameSchema.parse(process.argv[2]);
-  await migrate();
   await transaction(async (client) => {
     const { rows } = await client.query(
       "SELECT * FROM accounts WHERE username=$1 FOR UPDATE",

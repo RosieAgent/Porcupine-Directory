@@ -1,10 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { importDirectory } from "./directory-import.js";
 import { closeDb } from "./db.js";
-import { migrate } from "./migrate.js";
 
 try {
-  await migrate();
   const html = process.argv[2]
     ? await readFile(process.argv[2], "utf8")
     : undefined;

@@ -21,6 +21,7 @@ export async function migrate() {
     "014_entry_kind.sql",
     "015_catalog_provenance.sql",
     "016_external_owner.sql",
+    "017_runtime_role.sql",
   ];
   const client = await pool.connect();
   try {

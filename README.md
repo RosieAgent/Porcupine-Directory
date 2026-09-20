@@ -81,7 +81,7 @@ Recent additions: [publications and donations](docs/publications-and-donations.m
 
 This is a local preview, not production. Accounts, recovery phrases, owner editing, bookmarks, editor/admin roles and audited confirmation/restore are implemented. Staff use approved recent-password verification; passkeys stay hidden. Email recovery delivers only to a local preview inbox. Nostr, scopes, accepted ownership transfers, controlled tag catalog, account export/deletion and audit redaction remain queued/future work.
 
-The repository has not been pushed to Rosie’s GitHub account. Production deployment, Hostinger plan verification, persistent secrets, least-privilege database roles, backups, independent security review, and moderation/privacy operations remain before public launch. Compose credentials are for loopback-only development.
+The repository is maintained at [RosieAgent/Porcupine-Directory](https://github.com/RosieAgent/Porcupine-Directory). Production deployment, Hostinger plan verification, persistent secrets, backups, independent security review, and moderation/privacy operations remain before public launch. The production Compose override separates migration and runtime database roles; its deployment values are still required. Compose credentials are for loopback-only development.
 
 ## Set up your administrator account
 

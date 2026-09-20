@@ -163,7 +163,7 @@ app.get(
   createSharePreviewHandler({ indexHtml, origin: appOrigin, db: pool }),
 );
 const port = Number(process.env.PORT ?? 3000);
-await migrate();
+if (process.env.RUN_MIGRATIONS !== "false") await migrate();
 if (process.env.START_SERVER !== "false") {
   const stopScheduler = startEventScheduler();
   const stopPublications = startPublicationScheduler();

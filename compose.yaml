@@ -4,16 +4,20 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: porcupine_directory
-      POSTGRES_USER: porcupine
-      POSTGRES_PASSWORD: porcupine
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "127.0.0.1:5438:5432"
     volumes:
       - porcupine-postgres:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U porcupine -d porcupine_directory"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:?Set POSTGRES_USER in .env} -d ${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,7 +30,7 @@ services:
         condition: service_healthy
     environment:
       PORT: 3000
-      DATABASE_URL: postgres://porcupine:porcupine@db:5432/porcupine_directory
+      DATABASE_URL: ${COMPOSE_DATABASE_URL:?Set COMPOSE_DATABASE_URL in .env}
       FSP_SYNC_ENABLED: ${FSP_SYNC_ENABLED:-true}
       PUBLICATION_SYNC_ENABLED: ${PUBLICATION_SYNC_ENABLED:-true}
       DONATION_BITCOIN_ADDRESS: ${DONATION_BITCOIN_ADDRESS:-}

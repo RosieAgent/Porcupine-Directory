@@ -3,9 +3,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import pg from "pg";
-const url =
-  process.env.TEST_DATABASE_URL ??
-  "postgres://porcupine:porcupine@127.0.0.1:5438/porcupine_directory";
+const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+if (!url) throw new Error("Set TEST_DATABASE_URL or DATABASE_URL for tests.");
 const admin = new pg.Pool({ connectionString: url });
 const schema = "publication_test_" + randomUUID().replaceAll("-", "");
 const scoped = new URL(url);

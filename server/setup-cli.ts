@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { pool } from "./db.js";
-import { migrate } from "./migrate.js";
 import { inviteAccount, renewAccountInvitation } from "./setup-account.js";
 import { appOrigin } from "./security.js";
 try {
@@ -8,7 +7,6 @@ try {
     process.argv[3] === "--renew"
       ? null
       : z.enum(["user", "editor", "administrator"]).parse(process.argv[3]);
-  await migrate();
   const token = role
     ? await inviteAccount(process.argv[2] ?? "", role)
     : await renewAccountInvitation(process.argv[2] ?? "");

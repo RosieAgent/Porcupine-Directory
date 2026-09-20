@@ -3,10 +3,13 @@
 import assert from "node:assert/strict";
 import pg from "pg";
 import { syncPlatformTags } from "../../dist-server/server/tags.js";
+const connectionString =
+  process.env.MAINTENANCE_DATABASE_URL ?? process.env.DATABASE_URL;
+if (!connectionString)
+  throw new Error("Set MAINTENANCE_DATABASE_URL or DATABASE_URL.");
 const apply = process.argv.includes("--apply");
 const pool = new pg.Pool({
-  connectionString:
-    "postgres://porcupine:porcupine@127.0.0.1:5438/porcupine_directory",
+  connectionString,
 });
 const client = await pool.connect();
 const reason =
