@@ -25,6 +25,7 @@ export async function migrate() {
     "018_service_accounts.sql",
     "019_reference_source_updates.sql",
     "020_saved_tags.sql",
+    "021_tag_suggestions.sql",
   ];
   const client = await pool.connect();
   try {

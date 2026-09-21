@@ -24,21 +24,33 @@ export const connectionLabels: Record<ConnectionType, string> = {
   nostr: "Nostr",
   other: "Other link",
 };
-export const webUrl = z
-  .url()
-  .max(2000)
-  .refine((value) => {
-    try {
-      const parsed = new URL(value);
-      return (
-        ["http:", "https:"].includes(parsed.protocol) &&
-        !parsed.username &&
-        !parsed.password
-      );
-    } catch {
-      return false;
-    }
-  }, "Use an http or https link without embedded credentials.");
+export function normalizeWebUrl(value: string) {
+  const trimmed = value.trim();
+  if (
+    !trimmed ||
+    /^https?:\/\//i.test(trimmed) ||
+    /^[a-z][a-z\d+.-]*:/i.test(trimmed)
+  )
+    return trimmed;
+  if (trimmed.startsWith("//")) return "https:" + trimmed;
+  return "https://" + trimmed;
+}
+const normalizedWebUrl = z.preprocess(
+  (value) => (typeof value === "string" ? normalizeWebUrl(value) : value),
+  z.url().max(2000),
+);
+export const webUrl = normalizedWebUrl.refine((value) => {
+  try {
+    const parsed = new URL(value);
+    return (
+      ["http:", "https:"].includes(parsed.protocol) &&
+      !parsed.username &&
+      !parsed.password
+    );
+  } catch {
+    return false;
+  }
+}, "Use an http or https link without embedded credentials.");
 export const connectionSchema = z.object({
   id: z.uuid(),
   type: z.enum(connectionTypes),

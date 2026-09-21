@@ -8,7 +8,18 @@ import {
   uniqueConnections,
   connectionText,
   groupConnections,
+  normalizeWebUrl,
+  webUrl,
 } from "../dist-server/shared/connections.js";
+test("bare public domains are normalized to secure web URLs", () => {
+  assert.equal(normalizeWebUrl(" www.google.com "), "https://www.google.com");
+  assert.equal(webUrl.parse("www.google.com"), "https://www.google.com");
+  assert.equal(
+    webUrl.parse("//example.org/about"),
+    "https://example.org/about",
+  );
+  assert.equal(webUrl.safeParse("javascript:alert(1)").success, false);
+});
 test("primary links summarize destinations and keep secondary resources without inventing URLs", () => {
   const make = (url, type = "website", placement = undefined) => ({
     id: randomUUID(),

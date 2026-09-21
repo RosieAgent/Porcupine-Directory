@@ -1,5 +1,4 @@
 import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
-import type { ReactNode } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +8,7 @@ import { LocationSelector } from "./LocationSelector";
 import {
   Alert,
   Autocomplete,
+  Button,
   Chip,
   MenuItem,
   Paper,
@@ -28,28 +28,34 @@ import {
 } from "../../shared/contracts";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import type { Submission } from "../../shared/contracts";
-import { IconAction } from "./IconAction";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
 import AddLinkOutlined from "@mui/icons-material/AddLinkOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutlined";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import ArrowDownward from "@mui/icons-material/ArrowDownward";
-import { classifyConnection, connectionLabels } from "../../shared/connections";
-export function ListingForm({
-  initial,
-  onSave,
-  pending,
-  error,
-  beforeSubmit,
-  disabled = false,
-}: {
+import {
+  classifyConnection,
+  connectionLabels,
+  normalizeWebUrl,
+} from "../../shared/connections";
+import { EntryCreationWizard } from "./EntryCreationWizard";
+import { TagSuggestionDialog } from "./TagSuggestionDialog";
+
+type ListingFormProps = {
   initial?: Submission;
   onSave: (data: Submission) => void;
   pending: boolean;
   error: Error | null;
-  beforeSubmit?: ReactNode;
   disabled?: boolean;
-}) {
+};
+
+function DetailedListingForm({
+  initial,
+  onSave,
+  pending,
+  error,
+  disabled = false,
+}: ListingFormProps) {
   const catalog = useQuery(queries.tags);
   const {
     register,
@@ -85,6 +91,7 @@ export function ListingForm({
     keyName: "fieldKey",
   });
   const access = useWatch({ control, name: "accessMode" });
+  const entryName = useWatch({ control, name: "name" });
   const invitationOnly = access === "invite_only" || access === "private";
 
   return (
@@ -179,6 +186,13 @@ export function ListingForm({
                         `connections.${index}.type`,
                         classifyConnection(event.target.value),
                       ),
+                    onBlur: (event) => {
+                      const normalized = normalizeWebUrl(event.target.value);
+                      if (normalized !== event.target.value)
+                        setValue(`connections.${index}.url`, normalized, {
+                          shouldDirty: true,
+                        });
+                    },
                   })}
                   error={!!errors.connections?.[index]?.url}
                   helperText={errors.connections?.[index]?.url?.message}
@@ -229,26 +243,33 @@ export function ListingForm({
                   )}
                 />
                 <Stack direction="row" spacing={1}>
-                  <IconAction
-                    label={`Move connection ${index + 1} up`}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ArrowUpward />}
                     disabled={index === 0}
                     onClick={() => connections.move(index, index - 1)}
                   >
-                    <ArrowUpward />
-                  </IconAction>
-                  <IconAction
-                    label={`Move connection ${index + 1} down`}
+                    Move up
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ArrowDownward />}
                     disabled={index === connections.fields.length - 1}
                     onClick={() => connections.move(index, index + 1)}
                   >
-                    <ArrowDownward />
-                  </IconAction>
-                  <IconAction
-                    label={`Remove connection ${index + 1}`}
+                    Move down
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    startIcon={<DeleteOutline />}
                     onClick={() => connections.remove(index)}
                   >
-                    <DeleteOutline />
-                  </IconAction>
+                    Remove
+                  </Button>
                 </Stack>
               </Stack>
             </Paper>
@@ -259,11 +280,9 @@ export function ListingForm({
           {errors.connections?.message && (
             <Alert severity="error">{errors.connections.message}</Alert>
           )}
-          {errors.connections?.root?.message && (
-            <Alert severity="error">{errors.connections.root.message}</Alert>
-          )}
-          <IconAction
-            label="Add connection"
+          <Button
+            variant="outlined"
+            startIcon={<AddLinkOutlined />}
             disabled={connections.fields.length >= 30}
             onClick={() =>
               connections.append({
@@ -274,8 +293,8 @@ export function ListingForm({
               })
             }
           >
-            <AddLinkOutlined />
-          </IconAction>
+            Add another link
+          </Button>
         </Stack>
         <Controller
           name="location"
@@ -388,6 +407,7 @@ export function ListingForm({
             />
           )}
         />
+        <TagSuggestionDialog listingName={entryName} />
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
             Public contact details (optional)
@@ -429,16 +449,29 @@ export function ListingForm({
           </AccordionDetails>
         </Accordion>
         {error && <Alert severity="error">{error.message}</Alert>}
-        {beforeSubmit}
-        <IconAction
-          label={pending ? "Sending…" : "Save entry"}
+        <Button
           type="submit"
-          loading={pending}
+          variant="contained"
+          startIcon={<SaveOutlined />}
+          aria-label={pending ? "Saving entry" : "Save entry"}
           disabled={pending || disabled}
         >
-          <SaveOutlined />
-        </IconAction>
+          {pending ? "Saving…" : "Save changes"}
+        </Button>
       </Stack>
     </Paper>
   );
+}
+
+export function ListingForm(props: ListingFormProps) {
+  if (!props.initial)
+    return (
+      <EntryCreationWizard
+        onSave={props.onSave}
+        pending={props.pending}
+        error={props.error}
+        disabled={props.disabled}
+      />
+    );
+  return <DetailedListingForm {...props} />;
 }

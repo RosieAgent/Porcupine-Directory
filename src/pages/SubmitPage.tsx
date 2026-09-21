@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, Button, Typography } from "@mui/material";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import type { Submission } from "../../shared/contracts";
 import { mutate } from "../lib/api";
@@ -10,6 +10,7 @@ import { useAuth } from "../state/AuthProvider";
 export default function SubmitPage() {
   const { user, loading, error } = useAuth();
   const client = useQueryClient();
+  const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: (data: Submission) =>
       mutate(
@@ -20,14 +21,16 @@ export default function SubmitPage() {
         }),
         { ...data, expectedAccountId: user?.id ?? null },
       ),
-    onSuccess: () =>
-      client.invalidateQueries({
+    onSuccess: async (data) => {
+      await client.invalidateQueries({
         predicate: (query) =>
           ["listings", "facets", "sources"].includes(
             String(query.queryKey[0]),
           ) ||
           (query.queryKey[0] === "private" && query.queryKey[1] === "entries"),
-      }),
+      });
+      if (data.status === "published") navigate("/listings/" + data.id);
+    },
   });
   return (
     <Page
@@ -41,9 +44,10 @@ export default function SubmitPage() {
         </Typography>
       ) : (
         <Alert severity="info">
-          Anonymous submissions cannot be edited by their submitter.{" "}
-          <Link to="/login">Sign in</Link> first if you want to manage this
-          entry later.
+          <strong>Submitting without an account?</strong> This entry will be
+          public, but anonymous submissions cannot be edited by their submitter
+          later. <Link to="/login">Sign in or create an account</Link> first if
+          you want to manage this entry later.
         </Alert>
       )}
       {mutation.data ? (

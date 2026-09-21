@@ -202,7 +202,15 @@ test("submission validates fields and unsafe links without collecting identity",
   request,
 }) => {
   await page.goto("/submit");
-  await page.getByRole("button", { name: "Save entry" }).click();
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Name", exact: true }),
   ).toHaveAttribute("aria-invalid", "true");
@@ -210,14 +218,15 @@ test("submission validates fields and unsafe links without collecting identity",
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Example group");
   await page
-    .getByRole("textbox", { name: "Short description", exact: true })
+    .getByRole("textbox", { name: "What is it?", exact: true })
     .fill("Meet local neighbors.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
-    .getByRole("button", { name: "Add connection", exact: true })
+    .getByRole("button", { name: "Add a public link", exact: true })
     .click();
-  await page.getByLabel("Connection 1 URL").fill("javascript:alert(1)");
-  await page.getByRole("button", { name: "Save entry" }).click();
-  await expect(page.getByLabel("Connection 1 URL")).toHaveAttribute(
+  await page.getByLabel("Public link 1").fill("javascript:alert(1)");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByLabel("Public link 1")).toHaveAttribute(
     "aria-invalid",
     "true",
   );
@@ -232,6 +241,111 @@ test("submission validates fields and unsafe links without collecting identity",
     },
   });
   expect(response.status()).toBe(400);
+});
+
+test("creation wizard adapts a business journey and derives platform labels from links", async ({
+  page,
+}) => {
+  await page.goto("/submit");
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Business or service/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Example cat studio");
+  await page
+    .getByRole("textbox", { name: "What is it?", exact: true })
+    .fill("A local studio for cat-friendly creative workshops.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add a public link", exact: true })
+    .click();
+  await page.getByLabel("Public link 1").fill("www.example.org/studio");
+  await page.getByLabel("Public link 1").press("Tab");
+  await expect(page.getByLabel("Public link 1")).toHaveValue(
+    "https://www.example.org/studio",
+  );
+  await page.getByRole("combobox", { name: "What kind of link?" }).click();
+  await page.getByRole("option", { name: "Signal", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "How to start a Signal group" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "How to create the group link" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Add a public link", exact: true })
+    .click();
+  await page
+    .getByLabel("Public link 2")
+    .fill("https://signal.group/#cat-studio");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Detected from your links:" }),
+  ).toContainText("Detected from your links: Website, Signal");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByText("Business", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review before publishing" }),
+  ).toBeVisible();
+  await expect(page.getByText("Existing entry", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Example cat studio", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Business", { exact: true })).toBeVisible();
+});
+
+test("published wizard submissions open the public entry", async ({ page }) => {
+  const id = "78964ddf-5800-4643-b6b3-559a8008abf0";
+  await page.route("**/api/listings", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        json: { id, status: "published" },
+      });
+    } else {
+      await route.continue();
+    }
+  });
+  await page.goto("/submit");
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Redirect test");
+  await page
+    .getByRole("textbox", { name: "What is it?", exact: true })
+    .fill("A redirect test entry for the published wizard flow.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Where can people find it?" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "How can people participate?" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review before publishing" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Publish entry", exact: true })
+    .click();
+  await expect(page).toHaveURL(new RegExp(`/listings/${id}$`));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "AI Automation & Business Technology",
+  );
 });
 
 test("mobile navigation and filtered page fit the viewport", async ({

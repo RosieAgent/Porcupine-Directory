@@ -102,6 +102,37 @@ test("anonymous visitors can save tags and use them from the left menu", async (
   }
 });
 
+test("anonymous visitors can suggest a missing tag", async ({ page }) => {
+  let posted: Record<string, unknown> | undefined;
+  await page.route("**/api/tags/suggestions", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    posted = route.request().postDataJSON();
+    await route.fulfill({
+      status: 201,
+      json: { ok: true, status: "pending", approvedTagId: null },
+    });
+  });
+  await page.goto("/tags");
+  await page.getByRole("button", { name: "Suggest a new tag" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("textbox", { name: "Suggested tag" }).fill("Animal");
+  await dialog
+    .getByRole("textbox", { name: "Why would this tag help?" })
+    .fill("Helps people find animal-focused groups and services.");
+  await dialog.getByRole("button", { name: "Send suggestion" }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "A monitor will review" }),
+  ).toBeVisible();
+  expect(posted).toEqual({
+    name: "Animal",
+    reason: "Helps people find animal-focused groups and services.",
+    listingName: "",
+  });
+});
+
 test("contributors select existing tags and cannot access editor tools", async ({
   page,
   request,
@@ -110,7 +141,26 @@ test("contributors select existing tags and cannot access editor tools", async (
   await expect(
     page.getByRole("combobox", { name: "Type", exact: true }),
   ).toHaveCount(0);
-  const tags = page.getByRole("combobox", { name: "Topics", exact: true });
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Tag test entry");
+  await page
+    .getByRole("textbox", { name: "What is it?", exact: true })
+    .fill("A test entry for selecting existing topics.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  const tags = page.getByRole("combobox", {
+    name: "Topics or descriptors (optional)",
+    exact: true,
+  });
   await tags.fill("Invented tag should not be created");
   await tags.press("Enter");
   await expect(

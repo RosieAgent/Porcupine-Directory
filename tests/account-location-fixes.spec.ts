@@ -50,14 +50,14 @@ test("location picker searches NH towns, regions and statewide choices without f
   page,
 }) => {
   await page.goto("/submit");
-  await expect(
-    page.getByRole("combobox", { name: "Community stage" }),
-  ).toHaveText("Not sure yet");
-  await expect(
-    page.getByText("Not sure yet: you don't know whether it already exists.", {
-      exact: false,
-    }),
-  ).toBeVisible();
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   const location = page.getByRole("combobox", { name: "Town or region" });
   await location.fill("concord");
   await page.getByRole("option", { name: "Concord, NH", exact: true }).click();
@@ -104,12 +104,25 @@ test("owned submission sends the displayed identity and shows a stale-session fa
     page.getByText("Your account privately owns this entry", { exact: false }),
   ).toBeVisible();
   await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Mocked stale session fixture");
   await page
-    .getByRole("textbox", { name: "Short description", exact: true })
+    .getByRole("textbox", { name: "What is it?", exact: true })
     .fill("This mocked form never creates a real listing.");
-  await page.getByRole("button", { name: "Save entry", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Publish entry", exact: true })
+    .click();
   await expect(
     page.getByText("Your sign-in changed. No entry was created.", {
       exact: true,
@@ -117,7 +130,7 @@ test("owned submission sends the displayed identity and shows a stale-session fa
   ).toBeVisible();
   expect(submitted?.expectedAccountId).toBe(user.id);
   await expect(
-    page.getByRole("textbox", { name: "Name", exact: true }),
-  ).toHaveValue("Mocked stale session fixture");
+    page.getByText("Mocked stale session fixture", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole("link", { name: "View entry" })).toHaveCount(0);
 });

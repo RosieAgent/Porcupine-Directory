@@ -1,8 +1,14 @@
 import { Router } from "express";
 import { z } from "zod";
 import { pool } from "../db.js";
-import { tagEditSchema } from "../../shared/tags.js";
 import {
+  tagEditSchema,
+  tagSuggestionInputSchema,
+  tagSuggestionReviewSchema,
+} from "../../shared/tags.js";
+import {
+  audit,
+  limit,
   requireStaff,
   requireCurrentSession,
   transaction,
@@ -18,6 +24,123 @@ tags.get("/", async (_req, res) => {
       (SELECT 1 FROM tag_names n WHERE n.tag_id=d.id AND n.key=ANY(SELECT lower(t) FROM unnest(l.tags) t))) AS count
     FROM tag_definitions d ORDER BY lower(d.name),d.id`);
   res.json({ items: rows });
+});
+tags.post("/suggestions", limit("tag-suggestion", 10, 60), async (req, res) => {
+  const data = tagSuggestionInputSchema.parse(req.body);
+  const result = await transaction(async (client) => {
+    if (req.account) await requireCurrentSession(client, req);
+    const key = data.name.toLowerCase();
+    const existing = await client.query(
+      "SELECT 1 FROM tag_names WHERE key=$1",
+      [key],
+    );
+    if (existing.rowCount)
+      throw new HttpError(
+        409,
+        "That tag already exists. Choose it from the tag list instead.",
+      );
+    const { rows } = await client.query(
+      `INSERT INTO tag_suggestions(name,reason,listing_name,submitted_by)
+       VALUES ($1,$2,$3,$4) RETURNING id,status`,
+      [data.name, data.reason, data.listingName, req.account?.id ?? null],
+    );
+    await audit(
+      client,
+      req.account?.id ?? null,
+      rows[0].id,
+      "tag-suggestion.created",
+      {
+        subjectType: "tag_suggestion",
+        requestId: req.requestId,
+        reason: data.reason,
+        details: { name: data.name, listingName: data.listingName },
+      },
+    );
+    return rows[0];
+  });
+  res.status(201).json({
+    ok: true,
+    status: result.status,
+    approvedTagId: null,
+    id: result.id,
+  });
+});
+tags.get("/suggestions", requireStaff, async (req, res) => {
+  const { status, page } = z
+    .object({
+      status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+      page: z.coerce.number().int().min(1).max(10000).default(1),
+    })
+    .parse(req.query);
+  const { rows } = await pool.query(
+    `SELECT s.id,s.name,s.reason,s.listing_name AS "listingName",s.status,
+      s.submitted_by::text AS "submittedBy",s.created_at AS "submittedAt",
+      s.reviewed_by::text AS "reviewedBy",s.reviewed_at AS "reviewedAt",
+      s.review_reason AS "reviewReason",s.approved_tag_id AS "approvedTagId"
+     FROM tag_suggestions s
+     WHERE s.status=$1
+     ORDER BY s.created_at,s.id
+     LIMIT 25 OFFSET $2`,
+    [status, (page - 1) * 25],
+  );
+  res.json({ items: rows, page, pageSize: 25 });
+});
+tags.post("/suggestions/:id/review", requireStaff, async (req, res) => {
+  const id = z.uuid().parse(req.params.id);
+  const data = tagSuggestionReviewSchema.parse(req.body);
+  const result = await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const { rows } = await client.query(
+      "SELECT * FROM tag_suggestions WHERE id=$1 FOR UPDATE",
+      [id],
+    );
+    const suggestion = rows[0];
+    if (!suggestion || suggestion.status !== "pending")
+      throw new HttpError(
+        409,
+        "That tag suggestion has already been reviewed.",
+      );
+    let approvedTagId: string | null = null;
+    if (data.status === "approved") {
+      await client.query("SELECT pg_advisory_xact_lock(4350010)");
+      const existing = await client.query(
+        "SELECT tag_id FROM tag_names WHERE key=$1",
+        [suggestion.name.toLowerCase()],
+      );
+      if (existing.rows[0]) approvedTagId = existing.rows[0].tag_id as string;
+      else {
+        const created = await client.query(
+          "INSERT INTO tag_definitions(name,icon,retired) VALUES ($1,'tag',false) RETURNING id",
+          [suggestion.name],
+        );
+        const createdTagId = created.rows[0].id as string;
+        approvedTagId = createdTagId;
+        await putNames(client, createdTagId, [suggestion.name]);
+        await revise(
+          client,
+          createdTagId,
+          req.account!.id,
+          "suggestion-approved",
+          data.reason,
+          null,
+        );
+      }
+    }
+    await client.query(
+      `UPDATE tag_suggestions
+       SET status=$2,reviewed_by=$3,reviewed_at=now(),review_reason=$4,approved_tag_id=$5
+       WHERE id=$1`,
+      [id, data.status, req.account!.id, data.reason, approvedTagId],
+    );
+    await audit(client, req.account!.id, id, `tag-suggestion.${data.status}`, {
+      subjectType: "tag_suggestion",
+      requestId: req.requestId,
+      reason: data.reason,
+      details: { name: suggestion.name, approvedTagId },
+    });
+    return { status: data.status, approvedTagId };
+  });
+  res.json({ ok: true, ...result });
 });
 async function putNames(
   client: import("pg").PoolClient,

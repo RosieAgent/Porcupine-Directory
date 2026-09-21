@@ -99,7 +99,7 @@ test("staff catalog form saves controlled names, bundled icons and aliases on mo
     expect(route.request().method()).toBe("PUT");
     expect(data).toMatchObject({
       name: "Education",
-      icon: "book",
+      icon: "nature",
       aliases: ["Learning resources"],
       version: 1,
       reason: "Clarify the topic label",
@@ -123,6 +123,13 @@ test("staff catalog form saves controlled names, bundled icons and aliases on mo
   await page
     .getByLabel("Aliases (one per line)", { exact: true })
     .fill("Learning resources");
+  await page.getByLabel("Search icons", { exact: true }).fill("animals");
+  const nature = page.getByRole("button", {
+    name: "Select tag icon: nature",
+    exact: true,
+  });
+  await nature.click();
+  await expect(nature).toHaveAttribute("aria-pressed", "true");
   await page
     .getByRole("textbox", { name: "Reason for catalog change", exact: true })
     .fill("Clarify the topic label");

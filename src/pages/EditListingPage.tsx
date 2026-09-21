@@ -3,8 +3,10 @@ import { OwnershipAssignment } from "../components/OwnershipAssignment";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
+  Button,
   Checkbox,
   FormControlLabel,
+  Paper,
   Stack,
   TextField,
   Typography,
@@ -24,7 +26,6 @@ import { request, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
 import { Page, Loading, ErrorState } from "../components/Page";
 import { ListingForm } from "../components/ListingForm";
-import { IconAction, IconLink } from "../components/IconAction";
 export default function EditListingPage() {
   const { id = "" } = useParams();
   const { user, loading } = useAuth();
@@ -97,16 +98,15 @@ export default function EditListingPage() {
       title={"Manage " + listing.name}
       parent={{ label: "My entries", to: "/account/entries" }}
       shareable={false}
-      actions={
-        <OwnershipAssignment
-          key={`${id}:${user.id}`}
-          listingId={id}
-          version={listing.version}
-        />
-      }
     >
-      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        useFlexGap
+        sx={{ alignItems: { sm: "center" }, flexWrap: "wrap" }}
+      >
         <Typography>
+          Status:{" "}
           {listing.status === "archived"
             ? "Hidden"
             : listing.status === "pending_review"
@@ -114,98 +114,152 @@ export default function EditListingPage() {
               : "Published"}{" "}
           · revision {listing.version}
         </Typography>
+        {listing.status === "published" && (
+          <Button component={Link} to={`/listings/${id}`}>
+            View public entry
+          </Button>
+        )}
         {permissions.data?.canReview && (
-          <IconLink label="Revision history" to={`/listings/${id}/history`}>
-            <HistoryOutlined />
-          </IconLink>
+          <Button
+            component={Link}
+            to={`/listings/${id}/history`}
+            startIcon={<HistoryOutlined />}
+          >
+            Revision history
+          </Button>
         )}
       </Stack>
-      {listing.status === "published" && (
-        <Link to={`/listings/${id}`}>View public entry</Link>
-      )}
-      {permissions.data?.canConfirm && (
-        <>
-          {listing.status !== "archived" && (
-            <IconAction
-              label="Remove entry from directory"
-              disabled={!validReason || busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Remove this entry from public browsing? It will remain in My entries and private revision history. An editor can restore publication.",
-                  )
-                )
-                  action.mutate("hide");
-              }}
-            >
-              <DeleteOutline />
-            </IconAction>
-          )}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={attest}
-                onChange={(_, value) => setAttest(value)}
-              />
-            }
-            label="I confirm that the currently saved entry is accurate to the best of my knowledge"
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Stack spacing={2}>
+          <Typography variant="h2">Save changes</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Make your edits below, then explain what changed. The reason is kept
+            in the private revision history and is required before saving.
+          </Typography>
+          <TextField
+            label="Reason for change"
+            required
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            helperText="At least 3 characters. Do not include personal information."
+            slotProps={{ htmlInput: { maxLength: 500 } }}
           />
-          <IconAction
-            label="Self-confirm saved entry"
-            disabled={!attest || !validReason || busy}
-            onClick={() => action.mutate("confirm")}
-          >
-            <Check />
-          </IconAction>
-        </>
+        </Stack>
+      </Paper>
+      {permissions.data?.canConfirm && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="h2">Confirm accuracy</Typography>
+            <Typography variant="body2" color="text.secondary">
+              This is separate from saving edits. Use it only after reviewing
+              the currently saved entry. It records your confirmation date; it
+              does not claim ownership or make the entry official.
+            </Typography>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={attest}
+                  onChange={(_, value) => setAttest(value)}
+                />
+              }
+              label="I reviewed the saved entry and believe it is accurate."
+            />
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              useFlexGap
+            >
+              <Button
+                variant="outlined"
+                startIcon={<Check />}
+                disabled={!attest || !validReason || busy}
+                onClick={() => action.mutate("confirm")}
+              >
+                Confirm saved entry
+              </Button>
+              {listing.status !== "archived" && (
+                <Button
+                  color="error"
+                  startIcon={<DeleteOutline />}
+                  disabled={!validReason || busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Remove this entry from public browsing? It will remain in My entries and private revision history. An editor can restore publication.",
+                      )
+                    )
+                      action.mutate("hide");
+                  }}
+                >
+                  Remove from directory
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </Paper>
       )}
       {permissions.data?.canReview && (
-        <>
-          <Typography variant="body2">
-            Review and publication actions apply to the saved revision, not
-            unsaved form changes.
-          </Typography>
-          <Stack direction="row" spacing={2}>
-            <IconAction
-              label="Mark saved entry editor-reviewed"
-              disabled={!validReason || busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Have you reviewed the currently saved information? This does not certify its accuracy.",
-                  )
-                )
-                  action.mutate("review");
-              }}
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="h2">Monitor actions</Typography>
+            <Typography variant="body2" color="text.secondary">
+              These actions apply to the saved revision, not edits that are
+              still waiting to be saved.
+            </Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              useFlexGap
             >
-              <FactCheckOutlined />
-            </IconAction>
-            <IconAction
-              label={
-                listing.status === "published" ? "Hide entry" : "Publish entry"
-              }
-              disabled={!validReason || busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    listing.status === "published"
-                      ? "Hide this entry from public browsing?"
-                      : "Publish this entry?",
+              <Button
+                startIcon={<FactCheckOutlined />}
+                disabled={!validReason || busy}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Have you reviewed the currently saved information? This does not certify its accuracy.",
+                    )
                   )
-                )
-                  action.mutate(
-                    listing.status === "published" ? "hide" : "publish",
-                  );
-              }}
-            >
-              {listing.status === "published" ? (
-                <VisibilityOffOutlined />
-              ) : (
-                <VisibilityOutlined />
-              )}
-            </IconAction>
+                    action.mutate("review");
+                }}
+              >
+                Mark saved entry editor-reviewed
+              </Button>
+              <Button
+                startIcon={
+                  listing.status === "published" ? (
+                    <VisibilityOffOutlined />
+                  ) : (
+                    <VisibilityOutlined />
+                  )
+                }
+                disabled={!validReason || busy}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      listing.status === "published"
+                        ? "Hide this entry from public browsing?"
+                        : "Publish this entry?",
+                    )
+                  )
+                    action.mutate(
+                      listing.status === "published" ? "hide" : "publish",
+                    );
+                }}
+              >
+                {listing.status === "published"
+                  ? "Hide entry"
+                  : "Publish entry"}
+              </Button>
+              <OwnershipAssignment
+                key={id + ":" + user.id}
+                listingId={id}
+                version={listing.version}
+                button
+              />
+            </Stack>
           </Stack>
-        </>
+        </Paper>
       )}
       {action.error && <Alert severity="error">{action.error.message}</Alert>}
       {(action.isSuccess || update.isSuccess) && (
@@ -240,16 +294,6 @@ export default function EditListingPage() {
         }}
         pending={busy}
         disabled={!validReason}
-        beforeSubmit={
-          <TextField
-            label="Reason for change"
-            required
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            helperText="At least 3 characters. Recorded in the private revision history. Do not include personal information."
-            slotProps={{ htmlInput: { maxLength: 500 } }}
-          />
-        }
         error={update.error}
       />
     </Page>

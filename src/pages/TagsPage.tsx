@@ -4,14 +4,16 @@ import {
   Alert,
   Autocomplete,
   Box,
+  Button,
   Chip,
   FormControlLabel,
   Checkbox,
+  IconButton,
   Link,
-  MenuItem,
   Paper,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router";
@@ -22,7 +24,11 @@ import EditOutlined from "@mui/icons-material/EditOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
 import Merge from "@mui/icons-material/Merge";
 import { z } from "zod";
-import { tagIconKeys } from "../../shared/tags";
+import {
+  tagIconKeys,
+  tagSuggestionResponse,
+  tagSuggestionReviewSchema,
+} from "../../shared/tags";
 import type { TagDefinition } from "../../shared/tags";
 import { queries, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
@@ -31,6 +37,11 @@ import { Page, ErrorState, Loading } from "../components/Page";
 import { StaffVerification } from "../components/StaffVerification";
 import { IconAction } from "../components/IconAction";
 import { TagLabel } from "../components/TopicTags";
+import {
+  tagIconComponents,
+  tagIconSearchTerms,
+} from "../components/tagIconCatalog";
+import { TagSuggestionDialog } from "../components/TagSuggestionDialog";
 
 export default function TagsPage() {
   const staffPage = useLocation().pathname === "/editor/tags";
@@ -49,15 +60,20 @@ export default function TagsPage() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState<(typeof tagIconKeys)[number]>("tag");
+  const [iconSearch, setIconSearch] = useState("");
   const [aliases, setAliases] = useState("");
   const [retired, setRetired] = useState(false);
   const [reason, setReason] = useState("");
   const [target, setTarget] = useState<TagDefinition | null>(null);
   const [notice, setNotice] = useState("");
+  const [reviewReasons, setReviewReasons] = useState<Record<string, string>>(
+    {},
+  );
   function edit(tag: TagDefinition | null) {
     setSelected(tag);
     setName(tag?.name ?? "");
     setIcon(tag?.icon ?? "tag");
+    setIconSearch("");
     setAliases((tag?.aliases ?? []).join("\n"));
     setRetired(tag?.retired ?? false);
     setReason("");
@@ -112,6 +128,50 @@ export default function TagsPage() {
       setNotice("Catalog updated. Existing shared tag links remain usable.");
     },
   });
+  const suggestions = useQuery({
+    ...queries.tagSuggestions(),
+    enabled: staffPage && staff && !!user?.staffVerified,
+  });
+  const reviewSuggestion = useMutation({
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: "approved" | "rejected";
+    }) =>
+      mutate(
+        `/tags/suggestions/${id}/review`,
+        tagSuggestionResponse,
+        tagSuggestionReviewSchema.parse({
+          status,
+          reason: reviewReasons[id] ?? "",
+        }),
+      ),
+    onSuccess: async (_, variables) => {
+      setReviewReasons((current) => {
+        const next = { ...current };
+        delete next[variables.id];
+        return next;
+      });
+      setNotice(
+        variables.status === "approved"
+          ? "Tag approved and added to the catalog."
+          : "Tag suggestion rejected.",
+      );
+      await client.invalidateQueries({
+        queryKey: ["private", "tag-suggestions"],
+      });
+      await client.invalidateQueries({ queryKey: ["tags"] });
+    },
+  });
+  const filteredIconKeys = tagIconKeys.filter((key) => {
+    const search = iconSearch.trim().toLowerCase();
+    if (!search) return true;
+    return `${key} ${tagIconSearchTerms[key] ?? ""}`
+      .toLowerCase()
+      .includes(search);
+  });
   return (
     <Page
       title={staffPage ? "Manage tags" : "Browse tags"}
@@ -127,6 +187,104 @@ export default function TagsPage() {
       ) : (
         <>
           {staffPage && <StaffVerification />}
+          {!staffPage && <TagSuggestionDialog />}
+          {staffPage && staff && user?.staffVerified && (
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="h2">Tag suggestions</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Review suggestions from contributors. Approving creates a
+                    catalog tag with the default icon; you can edit its icon,
+                    aliases, or retirement status below.
+                  </Typography>
+                </Box>
+                {suggestions.isPending ? (
+                  <Loading />
+                ) : suggestions.error ? (
+                  <ErrorState error={suggestions.error} />
+                ) : suggestions.data.items.length === 0 ? (
+                  <Alert severity="info">No pending tag suggestions.</Alert>
+                ) : (
+                  suggestions.data.items.map((suggestion) => {
+                    const reviewReason = reviewReasons[suggestion.id] ?? "";
+                    return (
+                      <Paper
+                        key={suggestion.id}
+                        variant="outlined"
+                        sx={{ p: 2 }}
+                      >
+                        <Stack spacing={1.5}>
+                          <Typography variant="h3">
+                            {suggestion.name}
+                          </Typography>
+                          <Typography>Why: {suggestion.reason}</Typography>
+                          {suggestion.listingName && (
+                            <Typography variant="body2" color="text.secondary">
+                              Suggested while adding: {suggestion.listingName}
+                            </Typography>
+                          )}
+                          <TextField
+                            label="Review note"
+                            required
+                            value={reviewReason}
+                            onChange={(event) =>
+                              setReviewReasons((current) => ({
+                                ...current,
+                                [suggestion.id]: event.target.value,
+                              }))
+                            }
+                            helperText="Explain the decision for the audit history."
+                            slotProps={{ htmlInput: { maxLength: 300 } }}
+                          />
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={1}
+                          >
+                            <Button
+                              variant="contained"
+                              disabled={
+                                reviewReason.trim().length < 3 ||
+                                reviewSuggestion.isPending
+                              }
+                              onClick={() =>
+                                reviewSuggestion.mutate({
+                                  id: suggestion.id,
+                                  status: "approved",
+                                })
+                              }
+                            >
+                              Approve and add tag
+                            </Button>
+                            <Button
+                              color="inherit"
+                              disabled={
+                                reviewReason.trim().length < 3 ||
+                                reviewSuggestion.isPending
+                              }
+                              onClick={() =>
+                                reviewSuggestion.mutate({
+                                  id: suggestion.id,
+                                  status: "rejected",
+                                })
+                              }
+                            >
+                              Reject suggestion
+                            </Button>
+                          </Stack>
+                        </Stack>
+                      </Paper>
+                    );
+                  })
+                )}
+                {reviewSuggestion.error && (
+                  <Alert severity="error">
+                    {reviewSuggestion.error.message}
+                  </Alert>
+                )}
+              </Stack>
+            </Paper>
+          )}
           {notice && <Alert severity="success">{notice}</Alert>}
           <Stack direction="row" spacing={1}>
             <TextField
@@ -174,17 +332,57 @@ export default function TagsPage() {
                   slotProps={{ htmlInput: { maxLength: 80 } }}
                 />
                 <TextField
-                  select
-                  label="Tag icon"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value as typeof icon)}
+                  label="Search icons"
+                  value={iconSearch}
+                  onChange={(e) => setIconSearch(e.target.value)}
+                  placeholder="Try home, nature, chat or business"
+                  helperText={`Selected: ${icon}. Choose an icon below.`}
+                />
+                <Box
+                  aria-label="Tag icon choices"
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "repeat(6, minmax(0, 1fr))",
+                      sm: "repeat(8, minmax(0, 1fr))",
+                    },
+                    gap: 1,
+                  }}
                 >
-                  {tagIconKeys.map((key) => (
-                    <MenuItem key={key} value={key}>
-                      {key}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  {filteredIconKeys.map((key) => {
+                    const Icon = tagIconComponents[key];
+                    const selectedIcon = icon === key;
+                    return (
+                      <Tooltip key={key} title={key} describeChild>
+                        <IconButton
+                          type="button"
+                          aria-label={`Select tag icon: ${key}`}
+                          aria-pressed={selectedIcon}
+                          onClick={() => setIcon(key)}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            border: "2px solid",
+                            borderColor: selectedIcon
+                              ? "primary.main"
+                              : "divider",
+                            borderRadius: 1,
+                            backgroundColor: selectedIcon
+                              ? "action.selected"
+                              : "transparent",
+                          }}
+                        >
+                          <Icon />
+                        </IconButton>
+                      </Tooltip>
+                    );
+                  })}
+                </Box>
+                {filteredIconKeys.length === 0 && (
+                  <Alert severity="info">
+                    No icons match “{iconSearch}”. Try a broader word.
+                  </Alert>
+                )}
                 <TextField
                   label="Aliases (one per line)"
                   multiline

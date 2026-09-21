@@ -93,9 +93,7 @@ test("NHLA has a sourced organization profile without implying calendar sync or 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "NH Liberty Alliance (NHLA)",
   );
-  await expect(page.getByTestId("entry-status")).not.toContainText(
-    "Organizations",
-  );
+  await expect(page.getByTestId("entry-status")).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Breadcrumb" }),
   ).toContainText("Explore");
@@ -132,9 +130,7 @@ test("Barbell is a sourced Business with compact primary links and external sign
   page,
 }) => {
   await page.goto("/listings/9cc7ad4d-a739-4847-85b4-383f8102a04c");
-  await expect(page.getByTestId("entry-status")).not.toContainText(
-    "Businesses",
-  );
+  await expect(page.getByTestId("entry-status")).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Breadcrumb" }),
   ).toContainText("Explore");

@@ -57,3 +57,36 @@ export const tagEditSchema = z.object({
   retired: z.boolean().default(false),
   reason: z.string().trim().min(3).max(300),
 });
+export const tagSuggestionInputSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  reason: z.string().trim().min(3).max(500),
+  listingName: z.string().trim().max(160).default(""),
+});
+export const tagSuggestionStatus = z.enum(["pending", "approved", "rejected"]);
+export const tagSuggestionSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  reason: z.string(),
+  listingName: z.string(),
+  status: tagSuggestionStatus,
+  submittedBy: z.string().nullable(),
+  submittedAt: z.string(),
+  reviewedBy: z.string().nullable(),
+  reviewedAt: z.string().nullable(),
+  reviewReason: z.string(),
+  approvedTagId: z.uuid().nullable(),
+});
+export const tagSuggestionsResponse = z.object({
+  items: z.array(tagSuggestionSchema),
+  page: z.number(),
+  pageSize: z.number(),
+});
+export const tagSuggestionReviewSchema = z.object({
+  status: z.enum(["approved", "rejected"]),
+  reason: z.string().trim().min(3).max(300),
+});
+export const tagSuggestionResponse = z.object({
+  ok: z.literal(true),
+  status: tagSuggestionStatus,
+  approvedTagId: z.uuid().nullable(),
+});

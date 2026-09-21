@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
-import { tagCatalogResponse } from "../../shared/tags";
+import { tagCatalogResponse, tagSuggestionsResponse } from "../../shared/tags";
 import {
   eventSchema,
   calendarResponse,
@@ -70,6 +70,16 @@ export const queries = {
     queryKey: ["tags"],
     queryFn: ({ signal }) => request("/tags", tagCatalogResponse, { signal }),
   }),
+  tagSuggestions: (status = "pending") =>
+    queryOptions({
+      queryKey: ["private", "tag-suggestions", status],
+      queryFn: ({ signal }) =>
+        request(
+          "/tags/suggestions?status=" + encodeURIComponent(status),
+          tagSuggestionsResponse,
+          { signal },
+        ),
+    }),
   listings: (params: string) =>
     queryOptions({
       queryKey: ["listings", params],

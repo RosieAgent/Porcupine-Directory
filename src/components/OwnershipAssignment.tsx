@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Autocomplete,
+  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -36,9 +37,11 @@ type Candidate = { id: string; username: string; alias: string };
 export function OwnershipAssignment({
   listingId,
   version,
+  button = false,
 }: {
   listingId: string;
   version: number;
+  button?: boolean;
 }) {
   const { user } = useAuth();
   const client = useQueryClient();
@@ -110,24 +113,28 @@ export function OwnershipAssignment({
           reason,
         }).success
       : externalOwnerSchema.safeParse({ label, version, reason }).success;
+  const openAssignment = () => {
+    setOpen(true);
+    setSelected(null);
+    setSearch("");
+    setPage(1);
+    setReason("");
+    setLabel("");
+    setMode("account");
+    propose.reset();
+    cancel.reset();
+  };
   return (
     <>
-      <IconAction
-        label="Assign owner"
-        onClick={() => {
-          setOpen(true);
-          setSelected(null);
-          setSearch("");
-          setPage(1);
-          setReason("");
-          setLabel("");
-          setMode("account");
-          propose.reset();
-          cancel.reset();
-        }}
-      >
-        <PersonAddOutlined />
-      </IconAction>
+      {button ? (
+        <Button startIcon={<PersonAddOutlined />} onClick={openAssignment}>
+          Assign owner
+        </Button>
+      ) : (
+        <IconAction label="Assign owner" onClick={openAssignment}>
+          <PersonAddOutlined />
+        </IconAction>
+      )}
       <Dialog
         open={open}
         onClose={() => {

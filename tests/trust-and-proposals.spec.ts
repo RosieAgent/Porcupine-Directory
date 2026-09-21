@@ -61,6 +61,22 @@ test("invitation instructions encourage external requests and explain public ret
   page,
 }) => {
   await page.goto("/submit");
+  await page
+    .getByRole("radio", {
+      name: /An existing community, business, organization or resource/,
+    })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Invite-only group");
+  await page
+    .getByRole("textbox", { name: "What is it?", exact: true })
+    .fill("A group for invited local participants.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("combobox", { name: "Access", exact: true }).click();
   await page.getByRole("option", { name: "Invite only", exact: true }).click();
   const instructions = page.getByRole("textbox", {
@@ -162,20 +178,28 @@ test("proposal form needs intent but no invented link and distinguishes an organ
 }) => {
   await page.goto("/submit");
   await page
-    .getByRole("combobox", { name: "Community stage", exact: true })
-    .click();
+    .getByRole("radio", { name: /A new idea for a group or community/ })
+    .check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /^Community or group/ }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
-    .getByRole("option", { name: "Idea / proposed", exact: true })
-    .click();
-  await page
-    .getByRole("checkbox", { name: "Seeking an organizer", exact: true })
+    .getByRole("radio", { name: /No, I am looking for an organizer/ })
     .check();
   await expect(
-    page.getByText("This flag does not assign an account owner", {
+    page.getByText("Needs organizer filter", {
       exact: false,
     }),
   ).toBeVisible();
-  await expect(page.getByLabel("Connection 1 URL")).toHaveCount(0);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("A new local group");
+  await page
+    .getByRole("textbox", { name: "What would it do?", exact: true })
+    .fill("A new group for local people to learn and help each other.");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByLabel("Public link 1")).toHaveCount(0);
 });
 test("FSP is an enriched organization, preserving its stable URL and source attribution", async ({
   page,
