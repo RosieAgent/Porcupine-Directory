@@ -7,7 +7,7 @@ import {
   Typography,
   Link as MuiLink,
 } from "@mui/material";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { queries } from "../lib/api";
 import { safeExternalUrl } from "../lib/urls";
 import { accessLabels } from "../../shared/contracts";
@@ -25,8 +25,10 @@ import { z } from "zod";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import { RecentPublications } from "../components/RecentPublications";
 import { OwnershipAssignment } from "../components/OwnershipAssignment";
+import { DeleteListingDialog } from "../components/DeleteListingDialog";
 export default function ListingPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const result = useQuery(queries.listing(id));
   const { user } = useAuth();
   const permissions = useQuery({
@@ -38,6 +40,7 @@ export default function ListingPage() {
           canEdit: z.boolean(),
           canConfirm: z.boolean(),
           canReview: z.boolean(),
+          canDelete: z.boolean(),
         }),
       ),
     enabled: !!user,
@@ -70,6 +73,15 @@ export default function ListingPage() {
               key={`${id}:${user.id}`}
               listingId={id}
               version={listing.version}
+            />
+          )}
+          {user && permissions.data?.canDelete && (
+            <DeleteListingDialog
+              listingId={id}
+              listingName={listing.name}
+              onDeleted={() =>
+                navigate(user.role === "user" ? "/account/entries" : "/editor")
+              }
             />
           )}
         </>

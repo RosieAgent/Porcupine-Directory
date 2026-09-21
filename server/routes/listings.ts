@@ -82,6 +82,7 @@ listings.get("/:id/permissions", async (req, res) => {
     canEdit: owner || isEditor(req),
     canConfirm: owner,
     canReview: isEditor(req),
+    canDelete: owner || isEditor(req),
   });
 });
 listings.get("/:id/edit", requireUser, async (req, res) => {
@@ -143,6 +144,10 @@ async function lockedEntry(client: PoolClient, req: Request, version: number) {
 }
 const changeSchema = z.object({
   version: z.number().int().positive(),
+  reason: z.string().trim().min(3).max(500),
+});
+const deleteSchema = z.object({
+  confirmation: z.string().trim().min(1).max(160),
   reason: z.string().trim().min(3).max(500),
 });
 const editSchema = changeSchema.extend({ entry: submissionSchema });
@@ -319,6 +324,69 @@ listings.post("/:id/action", requireUser, async (req, res) => {
       `UPDATE listings SET ${updates[data.action]},locally_edited=true WHERE id=$1`,
       [entry.id],
     );
+  });
+  res.json({ ok: true });
+});
+listings.delete("/:id", requireUser, async (req, res) => {
+  const data = deleteSchema.parse(req.body);
+  await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    await client.query("SELECT pg_advisory_xact_lock(4350010)");
+    const { rows } = await client.query(
+      "SELECT * FROM listings WHERE id=$1 FOR UPDATE",
+      [z.uuid().parse(req.params.id)],
+    );
+    const entry = rows[0];
+    if (!entry) throw new HttpError(404, "Entry not found.");
+    if (data.confirmation !== entry.name)
+      throw new HttpError(
+        400,
+        "Type the entry name exactly to confirm permanent deletion.",
+      );
+    if (entry.owner_id !== req.account!.id) assertStaff(req);
+
+    const snapshot = Object.fromEntries(
+      Object.entries(entry).filter(([key]) => key !== "search_vector"),
+    );
+    const details = {
+      name: entry.name,
+      version: entry.version,
+      status: entry.status,
+      ownerId: entry.owner_id,
+      snapshot,
+    };
+    await context(client, req, "delete", data.reason);
+    await audit(client, req.account!.id, entry.id, "listing.deleted", {
+      actorType: "account",
+      subjectType: "listing",
+      requestId: req.requestId,
+      reason: data.reason,
+      details,
+    });
+
+    // Preserve the deletion audit record while removing the listing and its
+    // private child records. The audit snapshot gives administrators a record
+    // of what was removed without leaving the entry publicly recoverable.
+    await client.query(
+      `DELETE FROM moderation_report_audit
+       WHERE report_id IN (SELECT id FROM moderation_reports WHERE listing_id=$1)`,
+      [entry.id],
+    );
+    await client.query("DELETE FROM moderation_reports WHERE listing_id=$1", [
+      entry.id,
+    ]);
+    await client.query(
+      `DELETE FROM ownership_audit
+       WHERE transfer_id IN (SELECT id FROM ownership_transfers WHERE listing_id=$1)`,
+      [entry.id],
+    );
+    await client.query("DELETE FROM ownership_transfers WHERE listing_id=$1", [
+      entry.id,
+    ]);
+    await client.query("DELETE FROM listing_revisions WHERE listing_id=$1", [
+      entry.id,
+    ]);
+    await client.query("DELETE FROM listings WHERE id=$1", [entry.id]);
   });
   res.json({ ok: true });
 });

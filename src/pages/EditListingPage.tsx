@@ -11,14 +11,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { z } from "zod";
 import Check from "@mui/icons-material/Check";
 import FactCheckOutlined from "@mui/icons-material/FactCheckOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
 import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
-import DeleteOutline from "@mui/icons-material/DeleteOutlined";
 import { listingSchema } from "../../shared/contracts";
 import type { Submission } from "../../shared/contracts";
 import { okSchema } from "../../shared/auth";
@@ -26,8 +25,10 @@ import { request, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
 import { Page, Loading, ErrorState } from "../components/Page";
 import { ListingForm } from "../components/ListingForm";
+import { DeleteListingDialog } from "../components/DeleteListingDialog";
 export default function EditListingPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
   const client = useQueryClient();
   const [reason, setReason] = useState("");
@@ -46,6 +47,7 @@ export default function EditListingPage() {
           canEdit: z.boolean(),
           canConfirm: z.boolean(),
           canReview: z.boolean(),
+          canDelete: z.boolean(),
         }),
       ),
     enabled: !!user,
@@ -180,7 +182,7 @@ export default function EditListingPage() {
               {listing.status !== "archived" && (
                 <Button
                   color="error"
-                  startIcon={<DeleteOutline />}
+                  variant="outlined"
                   disabled={!validReason || busy}
                   onClick={() => {
                     if (
@@ -256,6 +258,29 @@ export default function EditListingPage() {
                 listingId={id}
                 version={listing.version}
                 button
+              />
+            </Stack>
+          </Stack>
+        </Paper>
+      )}
+      {permissions.data?.canDelete && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="h2">Danger zone</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Permanent deletion is different from hiding an entry. Use it only
+              when this listing should no longer exist in the directory.
+            </Typography>
+            <Stack direction="row" sx={{ flexWrap: "wrap" }}>
+              <DeleteListingDialog
+                listingId={id}
+                listingName={listing.name}
+                disabled={busy}
+                onDeleted={() =>
+                  navigate(
+                    user.role === "user" ? "/account/entries" : "/editor",
+                  )
+                }
               />
             </Stack>
           </Stack>

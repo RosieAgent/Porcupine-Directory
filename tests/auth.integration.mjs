@@ -292,6 +292,36 @@ try {
     ).rows[0].action,
     "hide",
   );
+  await alice.call(
+    `/listings/${removable.id}`,
+    "DELETE",
+    {
+      confirmation: "DELETE",
+      reason: "Check the permanent deletion confirmation",
+    },
+    400,
+  );
+  await alice.call(`/listings/${removable.id}`, "DELETE", {
+    confirmation: "Owner archive location fixture",
+    reason: "Remove the disposable test listing permanently",
+  });
+  await anonymous.call(`/listings/${removable.id}`, "GET", undefined, 404);
+  assert.equal(
+    (await pool.query("SELECT 1 FROM listings WHERE id=$1", [removable.id]))
+      .rowCount,
+    0,
+  );
+  const deletionAudit = (
+    await pool.query(
+      "SELECT action,reason,details FROM security_audit WHERE subject_id=$1 ORDER BY id DESC LIMIT 1",
+      [removable.id],
+    )
+  ).rows[0];
+  assert.equal(deletionAudit.action, "listing.deleted");
+  assert.equal(
+    deletionAudit.details.snapshot.name,
+    "Owner archive location fixture",
+  );
   await bob.call(
     "/auth/signup",
     "POST",
@@ -952,13 +982,27 @@ try {
     page.getByText("Your account privately owns this entry", { exact: false }),
   ).toBeVisible();
   await page
+    .getByText("An existing community, business, organization or resource", {
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByText("Community or group", { exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Browser owned fixture");
   await page
-    .getByRole("textbox", { name: "Short description", exact: true })
+    .getByRole("textbox", { name: "What is it?", exact: true })
     .fill("Created from My entries in an isolated test schema.");
-  await page.getByRole("button", { name: "Save entry", exact: true }).click();
-  await page.getByRole("link", { name: "My entries", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Publish entry", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/listings\//);
+  await page.goto(process.env.APP_ORIGIN + "/account/entries");
   await expect(
     page.getByRole("link", { name: "Edit Browser owned fixture", exact: true }),
   ).toBeVisible();
@@ -1054,7 +1098,7 @@ try {
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Browser corrected listing");
   await page
-    .getByRole("button", { name: "Add connection", exact: true })
+    .getByRole("button", { name: "Add another link", exact: true })
     .click();
   await page
     .getByLabel("Connection 1 URL")
@@ -1070,13 +1114,14 @@ try {
     .getByRole("option", { name: "Additional resource", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Add connection", exact: true })
+    .getByRole("button", { name: "Add another link", exact: true })
     .click();
   await page
     .getByLabel("Connection 2 URL")
     .fill("https://example.org/browser-site");
   await page
-    .getByRole("button", { name: "Move connection 2 up", exact: true })
+    .getByRole("button", { name: "Move up", exact: true })
+    .last()
     .click();
   await expect(page.getByLabel("Connection 1 URL")).toHaveValue(
     "https://example.org/browser-site",
@@ -1095,12 +1140,26 @@ try {
     "Browser corrected listing",
   );
   page.on("dialog", (dialog) => dialog.accept());
+  const reviewResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith(`/api/listings/${anonEntry.id}/action`) &&
+      response.request().method() === "POST",
+  );
   await page
     .getByRole("button", { name: "Mark saved entry editor-reviewed" })
     .click();
+  assert.equal((await reviewResponse).status(), 200);
   await expect(
-    page.getByRole("img", { name: "Editor-reviewed", exact: true }),
+    page.getByText("Entry updated.", { exact: false }),
   ).toBeVisible();
+  await page.goto(process.env.APP_ORIGIN + `/listings/${anonEntry.id}/edit`);
+  assert.ok(
+    (
+      await pool.query("SELECT editor_reviewed_at FROM listings WHERE id=$1", [
+        anonEntry.id,
+      ])
+    ).rows[0].editor_reviewed_at,
+  );
   await page.getByRole("link", { name: "Revision history" }).click();
   await page
     .getByRole("button", { name: "Preview restore of revision 1" })
@@ -1171,6 +1230,29 @@ try {
     [Date.now(), bobId],
   );
   assert.ok((await editor.call("/listings/manage?all=true")).total > 0);
+  const monitorDeletion = (
+    await pool.query(
+      `INSERT INTO listings(kind,name,summary,status,owner_id)
+       VALUES ('group','Monitor deletion fixture','A disposable monitor deletion fixture.','published',$1)
+       RETURNING id`,
+      [account.id],
+    )
+  ).rows[0];
+  assert.equal(
+    (await editor.call(`/listings/${monitorDeletion.id}/permissions`))
+      .canDelete,
+    true,
+  );
+  await editor.call(`/listings/${monitorDeletion.id}`, "DELETE", {
+    confirmation: "Monitor deletion fixture",
+    reason: "Remove a disposable monitor test entry",
+  });
+  await anonymous.call(
+    `/listings/${monitorDeletion.id}`,
+    "GET",
+    undefined,
+    404,
+  );
   await editor.call(
     "/admin/role",
     "PUT",

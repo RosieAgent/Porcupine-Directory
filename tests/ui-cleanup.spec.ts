@@ -44,7 +44,12 @@ const listing = {
 
 async function fixtures(
   page: Page,
-  options: { signedIn?: boolean; canEdit?: boolean; catalog?: boolean } = {},
+  options: {
+    signedIn?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+    catalog?: boolean;
+  } = {},
 ) {
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -73,6 +78,7 @@ async function fixtures(
         canEdit: !!options.canEdit,
         canConfirm: false,
         canReview: false,
+        canDelete: !!options.canDelete,
       };
     else if (path === "/api/account/saved") data = { ids: [] };
     else if (path === "/api/listings")
@@ -109,6 +115,25 @@ async function fixtures(
     await route.fulfill({ json: data });
   });
 }
+
+test("permanent deletion requires a clear confirmation", async ({ page }) => {
+  await fixtures(page, { signedIn: true, canEdit: true, canDelete: true });
+  await page.goto(`/listings/${id}`);
+  await page.getByRole("button", { name: "Delete entry" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("permanently removes the entry");
+  const remove = dialog.getByRole("button", { name: "Delete permanently" });
+  await expect(remove).toBeDisabled();
+  await dialog
+    .getByLabel("Type the entry name exactly to confirm")
+    .fill(listing.name);
+  await dialog
+    .getByLabel("Reason for deletion")
+    .fill("This is a disposable test entry.");
+  await expect(remove).toBeEnabled();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+});
 
 for (const width of [1440, 390]) {
   test(`toolbar, source panel and chip spacing at ${width}px`, async ({
