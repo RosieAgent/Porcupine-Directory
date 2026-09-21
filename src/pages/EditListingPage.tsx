@@ -8,7 +8,6 @@ import {
   FormControlLabel,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router";
@@ -99,6 +98,7 @@ export default function EditListingPage() {
     <Page
       title={"Manage " + listing.name}
       parent={{ label: "My entries", to: "/account/entries" }}
+      account
       shareable={false}
     >
       <Stack
@@ -131,23 +131,6 @@ export default function EditListingPage() {
           </Button>
         )}
       </Stack>
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Stack spacing={2}>
-          <Typography variant="h2">Save changes</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Make your edits below, then explain what changed. The reason is kept
-            in the private revision history and is required before saving.
-          </Typography>
-          <TextField
-            label="Reason for change"
-            required
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            helperText="At least 3 characters. Do not include personal information."
-            slotProps={{ htmlInput: { maxLength: 500 } }}
-          />
-        </Stack>
-      </Paper>
       {permissions.data?.canConfirm && (
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={2}>
@@ -320,6 +303,8 @@ export default function EditListingPage() {
         pending={busy}
         disabled={!validReason}
         error={update.error}
+        reason={reason}
+        onReasonChange={setReason}
       />
     </Page>
   );

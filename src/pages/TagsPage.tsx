@@ -175,6 +175,7 @@ export default function TagsPage() {
   return (
     <Page
       title={staffPage ? "Manage tags" : "Browse tags"}
+      account={staffPage}
       parent={
         staffPage ? { label: "Editor workspace", to: "/editor" } : undefined
       }

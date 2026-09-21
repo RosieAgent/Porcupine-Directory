@@ -152,6 +152,7 @@ export function AdminAudit() {
     <Page
       title="Audit log"
       parent={{ label: "Administration", to: "/admin" }}
+      account
       description="Review listing changes, service-account activity and restore an earlier listing revision as a new revision."
     >
       <StaffVerification />

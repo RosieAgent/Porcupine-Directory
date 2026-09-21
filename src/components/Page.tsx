@@ -20,6 +20,7 @@ export function Page({
   description,
   children,
   parent,
+  account = false,
   shareable = true,
   actions,
 }: {
@@ -27,6 +28,7 @@ export function Page({
   description?: string;
   children: ReactNode;
   parent?: { label: string; to: string };
+  account?: boolean;
   shareable?: boolean;
   actions?: ReactNode;
 }) {
@@ -49,8 +51,8 @@ export function Page({
           aria-label="Breadcrumb"
           sx={{ minWidth: 0, flex: 1, overflowWrap: "anywhere" }}
         >
-          <Link component={RouterLink} to="/">
-            Home
+          <Link component={RouterLink} to={account ? "/account" : "/"}>
+            {account ? "Account" : "Home"}
           </Link>
           {parent && (
             <Link component={RouterLink} to={parent.to}>

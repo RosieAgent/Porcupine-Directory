@@ -47,6 +47,8 @@ type ListingFormProps = {
   pending: boolean;
   error: Error | null;
   disabled?: boolean;
+  reason?: string;
+  onReasonChange?: (reason: string) => void;
 };
 
 function DetailedListingForm({
@@ -55,6 +57,8 @@ function DetailedListingForm({
   pending,
   error,
   disabled = false,
+  reason = "",
+  onReasonChange,
 }: ListingFormProps) {
   const catalog = useQuery(queries.tags);
   const {
@@ -448,6 +452,16 @@ function DetailedListingForm({
             </Stack>
           </AccordionDetails>
         </Accordion>
+        {onReasonChange && (
+          <TextField
+            label="Reason for change"
+            required
+            value={reason}
+            onChange={(event) => onReasonChange(event.target.value)}
+            helperText="At least 3 characters. Do not include personal information."
+            slotProps={{ htmlInput: { maxLength: 500 } }}
+          />
+        )}
         {error && <Alert severity="error">{error.message}</Alert>}
         <Button
           type="submit"

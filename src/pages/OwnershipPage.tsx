@@ -67,11 +67,7 @@ export default function OwnershipPage() {
     );
   const busy = respond.isPending || verify.isPending;
   return (
-    <Page
-      title="Ownership assignments"
-      parent={{ label: "Account", to: "/account" }}
-      shareable={false}
-    >
+    <Page title="Ownership assignments" account shareable={false}>
       <Typography>
         These are private invitations to maintain directory entries. Accepting
         grants editing access to that entry and replaces its previous owner. It

@@ -107,6 +107,7 @@ export default function HistoryPage() {
     <Page
       title="Revision history"
       parent={{ label: "Manage entry", to: `/listings/${id}/edit` }}
+      account
       description="Restoring creates a new revision. Ownership, publication state and trust badges are not restored."
     >
       {history.isPending ? (

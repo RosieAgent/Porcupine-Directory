@@ -271,6 +271,8 @@ export function ReviewQueuePage() {
     <Page
       title="Review queue"
       description="Review entry quality and private issue reports. Reports do not change directory ranking or entry trust."
+      parent={{ label: "Editor workspace", to: "/editor" }}
+      account
       shareable={false}
     >
       {loading ? (
@@ -381,6 +383,13 @@ export function ReviewQueuePage() {
                             <FlagOutlined />
                           </IconAction>
                         </Stack>
+                        {selected === entry.id && (
+                          <EntryReports
+                            key={`${user.id}:${entry.id}`}
+                            listingId={entry.id}
+                            accountId={user.id}
+                          />
+                        )}
                       </Stack>
                     </Paper>
                   ))}
@@ -389,13 +398,6 @@ export function ReviewQueuePage() {
                     page={query.page}
                     pageSize={query.pageSize}
                   />
-                  {selected && (
-                    <EntryReports
-                      key={`${user.id}:${selected}`}
-                      listingId={selected}
-                      accountId={user.id}
-                    />
-                  )}
                 </>
               )}
             </>

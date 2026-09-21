@@ -397,7 +397,11 @@ function SignIn({ mode }: { mode: "login" | "register" | "recover" }) {
 function AccountHome() {
   const { user, passkeysEnabled } = useAuth();
   return (
-    <Page title="Your account" description={`${user!.alias} · ${user!.role}`}>
+    <Page
+      title="Your account"
+      description={`${user!.alias} · ${user!.role}`}
+      account
+    >
       <Typography>
         Private username: {user!.username}. Your account ownership and saved
         entries are not shown to other users.
@@ -476,10 +480,7 @@ function Security() {
     },
   });
   return (
-    <Page
-      title="Account security"
-      parent={{ label: "Your account", to: "/account" }}
-    >
+    <Page title="Account security" account>
       {phrase ? (
         <RecoveryPhrase phrase={phrase} onDone={() => setPhrase("")} />
       ) : (
@@ -594,6 +595,7 @@ function Entries({ all }: { all: boolean }) {
   return (
     <Page
       title={all ? "Editor workspace" : "My entries"}
+      account
       description={
         all
           ? "Global editor access for v0.1. Confirmation, review and publication are separate actions."
@@ -746,6 +748,7 @@ function Administration() {
   return (
     <Page
       title="Administration"
+      account
       description={
         staffAuthMode === "passkey" && passkeysEnabled
           ? "Manage private accounts and assign global monitor access. Users must register a passkey and save their recovery phrase first."

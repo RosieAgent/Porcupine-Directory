@@ -215,6 +215,12 @@ test("staff review queue resolves private reports without editing or confirming 
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/editor/review");
+  await expect(
+    page.getByRole("navigation", { name: "Breadcrumb" }),
+  ).toContainText("Account");
+  await expect(
+    page.getByRole("navigation", { name: "Breadcrumb" }),
+  ).toContainText("Editor workspace");
   await page
     .getByRole("combobox", { name: "Review filter", exact: true })
     .click();
@@ -226,8 +232,14 @@ test("staff review queue resolves private reports without editing or confirming 
       exact: true,
     })
     .click();
+  const entryCard = page
+    .getByRole("heading", { name: "Fixture community", exact: true })
+    .locator('xpath=ancestor::div[contains(@class, "MuiPaper-root")][1]');
   await expect(
-    page.getByText("The public link no longer opens."),
+    entryCard.getByRole("heading", { name: "Private reports", exact: true }),
+  ).toBeVisible();
+  await expect(
+    entryCard.getByText("The public link no longer opens."),
   ).toBeVisible();
   await page
     .getByRole("textbox", { name: "Private resolution note", exact: true })
