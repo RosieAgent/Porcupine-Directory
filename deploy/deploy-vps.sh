@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 root=${PORCUPINE_ROOT:-/opt/porcupine-directory/current}
 env_file=${PORCUPINE_ENV_FILE:-/opt/porcupine-directory/.env.production}
+donation_env_file=${PORCUPINE_DONATION_ENV_FILE:-/opt/porcupine-directory/.donation.env}
 backup_root=${PORCUPINE_BACKUP_ROOT:-/opt/porcupine-directory/backups}
 
 test -d "$root"
@@ -11,6 +12,9 @@ test -f "$root/compose.yaml"
 test -f "$root/compose.production.yaml"
 
 compose=(docker compose --env-file "$env_file" -f "$root/compose.yaml" -f "$root/compose.production.yaml")
+if [[ -f "$donation_env_file" ]]; then
+  compose=(docker compose --env-file "$env_file" --env-file "$donation_env_file" -f "$root/compose.yaml" -f "$root/compose.production.yaml")
+fi
 cd "$root"
 "${compose[@]}" config -q
 "${compose[@]}" up -d db

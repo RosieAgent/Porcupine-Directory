@@ -68,6 +68,32 @@ openssl rand -hex 32  # EMAIL_ENCRYPTION_KEY, only if SMTP recovery is enabled
 
 Use `https://porcupinedirectory.com` for `APP_ORIGIN`, set `PUBLIC_BIND_ADDRESS` to the VPS public IPv4 address, and keep `TRUST_PROXY=1` because Caddy is the single trusted reverse proxy for the public site. The explicit Caddy bind keeps private listeners such as Tailscale separate from public HTTPS. Leave the SMTP fields blank until a real TLS SMTP provider is ready. The database URLs must use the matching passwords; URL-encode any password characters outside letters, numbers, `-`, and `_`.
 
+The production workflow uploads the application release but deliberately does not upload `.env.production`. It can, however, copy a separate mode-600 donation environment file to the VPS during deployment. Configure these in the protected GitHub `production` environment:
+
+| Name                         | GitHub type          | Value                                              |
+| ---------------------------- | -------------------- | -------------------------------------------------- |
+| `DONATION_LIGHTNING_ADDRESS` | Environment variable | `donate@porcupinedirectory.com`                    |
+| `DONATION_LIGHTNING_NWC_URL` | Environment secret   | Complete restricted Alby Hub NWC connection secret |
+
+The workflow writes those values to `/opt/porcupine-directory/.donation.env` and passes them to Docker Compose at runtime. The NWC secret is not placed in the repository or Docker image. If both values are blank, the donation drop-in is removed and the feature stays disabled.
+
+For an Alby Hub donation sub-wallet, the generated runtime file contains:
+
+```dotenv
+DONATION_LIGHTNING_ADDRESS=donate@porcupinedirectory.com
+DONATION_LIGHTNING_NWC_URL='nostr+walletconnect://...'
+DONATION_LIGHTNING_MIN_MSAT=1000
+DONATION_LIGHTNING_MAX_MSAT=1000000000
+DONATION_LIGHTNING_EXPIRY_SECONDS=3600
+DONATION_LIGHTNING_MEMO=Porcupine Directory donation
+```
+
+Use the complete NWC secret from Proton Pass; do not commit it or put it in GitHub Actions variables. Keep the file private:
+
+```bash
+chmod 0600 /opt/porcupine-directory/.env.production
+```
+
 ## 4. Configure the GitHub production environment
 
 In the repository’s **Settings → Environments**, create an environment named `production` and require a reviewer for deployments. GitHub environment secrets are only released to jobs that reference that environment, and the environment can restrict which branches deploy; see the [GitHub environment documentation](https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments).

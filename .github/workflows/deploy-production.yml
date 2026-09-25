@@ -100,6 +100,36 @@ jobs:
           ssh_options=(-i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15)
           ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "install -d -m 0750 '$DEPLOY_PATH/releases/$GITHUB_SHA'"
           scp "${ssh_options[@]}" "$RUNNER_TEMP/porcupine-directory.tar.gz" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/releases/$GITHUB_SHA/release.tar.gz"
+      - name: Configure Lightning donation environment
+        env:
+          DEPLOY_HOST: ${{ vars.PRODUCTION_HOST }}
+          DEPLOY_USER: ${{ vars.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ vars.PRODUCTION_PATH }}
+          DONATION_LIGHTNING_ADDRESS: ${{ vars.DONATION_LIGHTNING_ADDRESS }}
+          DONATION_LIGHTNING_NWC_URL: ${{ secrets.DONATION_LIGHTNING_NWC_URL }}
+        run: |
+          set -Eeuo pipefail
+          ssh_options=(-i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15)
+          remote_env="$DEPLOY_PATH/.donation.env"
+          if [[ -z "$DONATION_LIGHTNING_ADDRESS" && -z "$DONATION_LIGHTNING_NWC_URL" ]]; then
+            ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f '$remote_env'"
+            exit 0
+          fi
+          test -n "$DONATION_LIGHTNING_ADDRESS"
+          test -n "$DONATION_LIGHTNING_NWC_URL"
+          test "$DONATION_LIGHTNING_NWC_URL" != *"'"*
+          umask 077
+          local_env="$RUNNER_TEMP/donation.env"
+          {
+            printf 'DONATION_LIGHTNING_ADDRESS=%s\n' "$DONATION_LIGHTNING_ADDRESS"
+            printf "DONATION_LIGHTNING_NWC_URL='%s'\n" "$DONATION_LIGHTNING_NWC_URL"
+            printf 'DONATION_LIGHTNING_MIN_MSAT=1000\n'
+            printf 'DONATION_LIGHTNING_MAX_MSAT=1000000000\n'
+            printf 'DONATION_LIGHTNING_EXPIRY_SECONDS=3600\n'
+            printf "DONATION_LIGHTNING_MEMO='Porcupine Directory donation'\n"
+          } > "$local_env"
+          scp "${ssh_options[@]}" "$local_env" "$DEPLOY_USER@$DEPLOY_HOST:$remote_env.$GITHUB_SHA"
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "chmod 0600 '$remote_env.$GITHUB_SHA' && mv -f '$remote_env.$GITHUB_SHA' '$remote_env'"
       - name: Activate release
         env:
           DEPLOY_HOST: ${{ vars.PRODUCTION_HOST }}

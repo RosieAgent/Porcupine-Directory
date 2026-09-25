@@ -21,4 +21,5 @@ ln -sfn "$release_dir" "$root/current"
 
 PORCUPINE_ROOT="$root/current" \
 PORCUPINE_ENV_FILE="$root/.env.production" \
+PORCUPINE_DONATION_ENV_FILE="$root/.donation.env" \
   "$root/current/deploy/deploy-vps.sh"

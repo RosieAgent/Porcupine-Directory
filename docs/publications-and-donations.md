@@ -28,6 +28,36 @@ DONATION_LIGHTNING_ADDRESS=
 
 No email, donor identity, browser wallet connection or account is required. Bitcoin is public; address reuse can link donations. Wallets/Lightning providers have their own metadata exposure. No anonymity guarantee. No donor leaderboard, analytics or ranking advantage. No tax deductibility claim.
 
+## Self-host the Lightning Address
+
+The application can also serve its own LNURL-pay endpoint for a Lightning Address on the same HTTPS domain. This mode creates a fresh invoice through the project's Alby Hub connection when a wallet requests payment. It does not require an Alby Account.
+
+Use a project-owned address whose domain matches `APP_ORIGIN`, for example:
+
+```dotenv
+DONATION_LIGHTNING_ADDRESS=donate@porcupinedirectory.com
+DONATION_LIGHTNING_NWC_URL=<restricted-Alby-Hub-NWC-connection-secret>
+# The direct-LND values below are an alternate backend; leave them blank when
+# using NWC.
+DONATION_LIGHTNING_LND_REST_URL=https://lnd.private.example:8080
+DONATION_LIGHTNING_LND_MACAROON_HEX=<invoice-only-macaroon-hex>
+DONATION_LIGHTNING_LND_TLS_CERT_B64=<base64-of-lnd-tls.cert>
+DONATION_LIGHTNING_MIN_MSAT=1000
+DONATION_LIGHTNING_MAX_MSAT=1000000000
+DONATION_LIGHTNING_EXPIRY_SECONDS=3600
+DONATION_LIGHTNING_MEMO=Porcupine Directory donation
+```
+
+Prefer a dedicated Alby Hub app connection for the donation sub-wallet with only `make_invoice` (and, if desired, `lookup_invoice`) enabled. Store its complete NWC connection secret only in the mode-600 production environment file; never commit it, paste it into chat, or place it in screenshots. The website can create invoices but cannot spend from that connection. If using the direct-LND fallback instead, the REST URL must travel over a private VPN or tunnel between the production web server and Start9. Do not port-forward LND's REST or gRPC port to the public internet. The macaroon should be limited to invoice creation (`invoices:write`), and the TLS certificate value is base64 only so it can safely pass through the environment file; certificate validation remains enabled.
+
+The public endpoint is:
+
+```text
+https://porcupinedirectory.com/.well-known/lnurlp/donate
+```
+
+It returns public payment metadata. The callback creates the invoice; the site does not receive, hold, or sweep funds. Incoming liquidity and node availability still determine whether payments can complete. If the NWC/LND backend values are absent, the self-hosted endpoint is not registered; a provider-hosted address can continue to be displayed normally.
+
 **Nostr zaps remain pending**, not synonymous with ordinary Lightning payments. [NIP-57](https://github.com/nostr-protocol/nips/blob/master/57.md) adds recipient/provider public keys and signed zap events/receipts. Choose the recipient and public/private receipt policy before implementing this; never silently link payments to directory accounts. Dash, Monero and USD remain future discussions.
 
 ## Checks
