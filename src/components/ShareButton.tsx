@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import {
   Dialog,
   DialogActions,
@@ -44,11 +45,17 @@ const publicFilters = new Set([
   "month",
 ]);
 
-export function ShareButton() {
+export function ShareButton({
+  pathOverride,
+  trigger,
+}: {
+  pathOverride?: string;
+  trigger?: (copy: () => Promise<void>) => ReactNode;
+}) {
   const [copied, setCopied] = useState(false);
   const [fallback, setFallback] = useState(false);
   const location = useLocation();
-  const path = location.pathname;
+  const path = pathOverride ?? location.pathname;
   const isDetail =
     /^\/(listings|events)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(
       path,
@@ -72,9 +79,13 @@ export function ShareButton() {
   };
   return (
     <>
-      <IconAction label="Copy link" onClick={() => void copy()}>
-        <ShareOutlined data-share-icon="true" />
-      </IconAction>
+      {trigger ? (
+        trigger(copy)
+      ) : (
+        <IconAction label="Share Link" onClick={() => void copy()}>
+          <ShareOutlined data-share-icon="true" />
+        </IconAction>
+      )}
       <Snackbar
         open={copied}
         autoHideDuration={3000}

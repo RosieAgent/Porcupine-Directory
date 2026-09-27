@@ -1,4 +1,5 @@
 import { useDeferredValue, useState } from "react";
+import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
@@ -38,10 +39,12 @@ export function OwnershipAssignment({
   listingId,
   version,
   button = false,
+  trigger,
 }: {
   listingId: string;
   version: number;
   button?: boolean;
+  trigger?: (open: () => void) => ReactNode;
 }) {
   const { user } = useAuth();
   const client = useQueryClient();
@@ -126,7 +129,9 @@ export function OwnershipAssignment({
   };
   return (
     <>
-      {button ? (
+      {trigger ? (
+        trigger(openAssignment)
+      ) : button ? (
         <Button startIcon={<PersonAddOutlined />} onClick={openAssignment}>
           Assign owner
         </Button>

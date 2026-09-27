@@ -63,23 +63,24 @@ export async function runOwnershipPreview({
     }
     const staff = await open(staffCookie, `/listings/${entryId}/edit`);
     await expect(staff.getByLabel(/^Current password/)).toHaveCount(0);
-    const reason = staff.getByLabel("Reason for change", { exact: false });
-    const save = staff.getByRole("button", { name: "Save entry", exact: true });
-    await expect(save).toBeDisabled();
-    await reason.fill("Reviewed the fictional fixture entry details");
+    const save = staff.getByRole("button", {
+      name: "Save changes",
+      exact: true,
+    });
     await expect(save).toBeEnabled();
-    const formOrder = await reason.evaluate((el) =>
-      Boolean(
-        el.compareDocumentPosition(
-          document.querySelector('button[aria-label="Save entry"]'),
-        ) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ),
-    );
-    assert.equal(formOrder, true);
     await save.click();
+    await staff
+      .getByRole("dialog")
+      .getByLabel("Reason for change")
+      .fill("Reviewed the fictional fixture entry details");
+    await staff
+      .getByRole("dialog")
+      .getByRole("button", { name: "Continue" })
+      .click();
     await expect(
       staff.getByText("Entry updated.", { exact: false }),
     ).toBeVisible();
+    await staff.goto(origin + `/listings/${entryId}/edit`);
     await staff
       .getByRole("button", { name: "Assign owner", exact: true })
       .click();
@@ -234,8 +235,11 @@ export async function runOwnershipPreview({
     assert.equal((await after.json()).canEdit, true);
     await recipient.goto(origin + `/listings/${entryId}/edit`);
     await expect(
-      recipient.getByLabel("Reason for change", { exact: false }),
+      recipient.getByRole("button", { name: "Save changes", exact: true }),
     ).toBeVisible();
+    await expect(
+      recipient.getByLabel("Reason for change", { exact: false }),
+    ).toHaveCount(0);
     await expect(
       recipient.getByRole("button", { name: "Assign owner", exact: true }),
     ).toHaveCount(0);
@@ -246,7 +250,7 @@ export async function runOwnershipPreview({
     });
     assert.deepEqual(pageErrors, []);
     console.log(
-      `Ownership browser passed: session-only editing, bottom reason, account picker, no-account manager, nomination/cancellation, private inbox, mobile layout and explicit acceptance. Preview screenshots: ${artifacts}`,
+      `Ownership browser passed: session-only editing, modal change reason, account picker, no-account manager, nomination/cancellation, private inbox, mobile layout and explicit acceptance. Preview screenshots: ${artifacts}`,
     );
   } finally {
     if (browser) await browser.close();

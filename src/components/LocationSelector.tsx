@@ -13,6 +13,7 @@ export function LocationSelector({
   helperText,
   label = "Town or region",
   legacy = [],
+  id,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -21,6 +22,7 @@ export function LocationSelector({
   helperText?: string;
   label?: string;
   legacy?: string[];
+  id?: string;
 }) {
   const options = locationChoices(legacy);
   const selected =
@@ -42,6 +44,7 @@ export function LocationSelector({
       renderInput={(props) => (
         <TextField
           {...props}
+          id={id}
           label={label}
           error={error}
           helperText={

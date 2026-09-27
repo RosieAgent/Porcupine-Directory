@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import type { ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   Alert,
@@ -24,13 +25,28 @@ import {
 } from "../../shared/moderation";
 
 /** Mount on a public listing: <ReportIssue listingId={entry.id} />. */
-export function ReportIssue({ listingId }: { listingId: string }) {
+export function ReportIssue({
+  listingId,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  listingId: string;
+  trigger?: (open: () => void) => ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const titleId = useId();
   const warningId = useId();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [reason, setReason] = useState<keyof typeof reportReasons>("incorrect");
   const [text, setText] = useState("");
   const [website, setWebsite] = useState("");
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (nextOpen: boolean) => {
+    if (controlledOpen === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const report = useMutation({
     mutationFn: () =>
       mutate("/moderation/reports", reportReceiptSchema, {
@@ -40,20 +56,22 @@ export function ReportIssue({ listingId }: { listingId: string }) {
         website,
       }),
   });
+  const openReport = () => {
+    report.reset();
+    setReason("incorrect");
+    setText("");
+    setWebsite("");
+    setOpen(true);
+  };
   return (
     <>
-      <IconAction
-        label="Report an issue"
-        onClick={() => {
-          report.reset();
-          setReason("incorrect");
-          setText("");
-          setWebsite("");
-          setOpen(true);
-        }}
-      >
-        <FlagOutlined />
-      </IconAction>
+      {trigger ? (
+        trigger(openReport)
+      ) : (
+        <IconAction label="Report an issue" onClick={openReport}>
+          <FlagOutlined />
+        </IconAction>
+      )}
       <Dialog
         open={open}
         onClose={() => {

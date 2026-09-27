@@ -8,7 +8,7 @@ import { savedSchema, okSchema } from "../../shared/auth";
 const KEY = "porcupine:saved";
 const SavedContext = createContext<{
   ids: string[];
-  toggle: (id: string) => void;
+  toggle: (id: string) => Promise<boolean>;
   clear: () => void;
   storageError: boolean;
   busy: boolean;
@@ -44,12 +44,14 @@ export function SavedProvider({ children }: { children: ReactNode }) {
     onSuccess: () => client.invalidateQueries({ queryKey }),
   });
   const persist = (next: string[]) => {
-    setLocalIds(next);
     try {
       localStorage.setItem(KEY, JSON.stringify(next));
+      setLocalIds(next);
       setStorageError(false);
+      return true;
     } catch {
       setStorageError(true);
+      return false;
     }
   };
   const ids = user ? (result.data?.ids ?? []) : localIds;
@@ -68,19 +70,26 @@ export function SavedProvider({ children }: { children: ReactNode }) {
           if (user) update.mutate({ path: "/account/saved", method: "DELETE" });
           else persist([]);
         },
-        toggle: (id) => {
-          if (busy) return;
-          if (user)
-            update.mutate({
+        toggle: async (id) => {
+          if (busy) throw new Error("Bookmarks are still loading.");
+          const nextSaved = !ids.includes(id);
+          if (user) {
+            await update.mutateAsync({
               path: "/account/saved/" + id,
-              method: ids.includes(id) ? "DELETE" : "PUT",
+              method: nextSaved ? "PUT" : "DELETE",
             });
-          else
-            persist(
-              ids.includes(id)
-                ? ids.filter((value) => value !== id)
-                : [...ids, id].slice(-1000),
+          } else if (
+            !persist(
+              nextSaved
+                ? [...ids, id].slice(-1000)
+                : ids.filter((value) => value !== id),
+            )
+          ) {
+            throw new Error(
+              "This browser could not save the bookmark. Please check storage permissions and try again.",
             );
+          }
+          return nextSaved;
         },
       }}
     >

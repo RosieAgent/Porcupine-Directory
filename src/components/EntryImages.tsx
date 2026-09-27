@@ -23,12 +23,12 @@ import ArrowForwardIos from "@mui/icons-material/ArrowForwardIos";
 import DeleteOutline from "@mui/icons-material/DeleteOutlined";
 import HelpOutline from "@mui/icons-material/HelpOutlined";
 import ImageOutlined from "@mui/icons-material/ImageOutlined";
-import SaveOutlined from "@mui/icons-material/SaveOutlined";
+import Star from "@mui/icons-material/Star";
+import { z } from "zod";
 import type { EntryImage } from "../../shared/contracts";
 import { entryImageSchema } from "../../shared/contracts";
 import { mutate, uploadImage } from "../lib/api";
 import { imageAltFromFile, prepareImage } from "../lib/images";
-import { okSchema } from "../../shared/auth";
 
 const imageResponse = entryImageSchema;
 
@@ -148,10 +148,11 @@ export function EntryImageGallery({
               key={item.id}
               component="button"
               type="button"
-              aria-label={`Show entry image ${index + 1}`}
+              aria-label={`Show entry image ${index + 1}${item.isLead ? ", community card image" : ""}`}
               aria-pressed={index === safeActive}
               onClick={() => setActive(index)}
               sx={{
+                position: "relative",
                 flex: "0 0 auto",
                 p: 0,
                 width: 64,
@@ -170,6 +171,18 @@ export function EntryImageGallery({
                 alt=""
                 sx={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
+              {item.isLead && (
+                <Star
+                  aria-label="Community card image"
+                  sx={{
+                    position: "absolute",
+                    right: 3,
+                    bottom: 3,
+                    color: "warning.main",
+                    filter: "drop-shadow(0 0 2px white)",
+                  }}
+                />
+              )}
             </Box>
           ))}
         </Stack>
@@ -212,34 +225,93 @@ export type PendingImage = {
 };
 
 export type ListingImagesEditorHandle = {
-  savePending: () => Promise<void>;
+  saveChanges: (reason: string) => Promise<void>;
+};
+
+type SavedImageDraft = {
+  altText: string;
+  caption: string;
+  shareable: boolean;
 };
 
 type ListingImagesEditorProps = {
   listingId: string;
   images: EntryImage[];
-  reason: string;
-  onChanged: () => Promise<void>;
+  onDirtyChange?: (dirty: boolean) => void;
 };
 
 export const ListingImagesEditor = forwardRef<
   ListingImagesEditorHandle,
   ListingImagesEditorProps
->(function ListingImagesEditor({ listingId, images, reason, onChanged }, ref) {
+>(function ListingImagesEditor(
+  { listingId, images, onDirtyChange },
+  ref,
+) {
   const input = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingImage[]>([]);
+  const [savedDrafts, setSavedDrafts] = useState<
+    Record<string, SavedImageDraft>
+  >({});
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const canChange = reason.trim().length >= 3;
+  const [activeImageId, setActiveImageId] = useState<string | null>(
+    () => images.find((image) => image.isLead)?.id ?? images[0]?.id ?? null,
+  );
   const pendingRef = useRef(pending);
 
-  function requestReason() {
-    setError("Enter a reason for the change before changing images.");
-    const reasonField = document.getElementById("reason-for-change");
-    reasonField?.scrollIntoView({ behavior: "smooth", block: "center" });
-    if (reasonField instanceof HTMLInputElement)
-      window.setTimeout(() => reasonField.focus(), 250);
+  function originalDraft(image: EntryImage): SavedImageDraft {
+    return {
+      altText: image.altText,
+      caption: image.caption,
+      shareable: image.shareable,
+    };
   }
+
+  function draftFor(image: EntryImage): SavedImageDraft {
+    return savedDrafts[image.id] ?? originalDraft(image);
+  }
+
+  function sameDraft(left: SavedImageDraft, right: SavedImageDraft) {
+    return (
+      left.altText === right.altText &&
+      left.caption === right.caption &&
+      left.shareable === right.shareable
+    );
+  }
+
+  const dirty =
+    pending.length > 0 ||
+    Object.keys(savedDrafts).length > 0 ||
+    removedImageIds.length > 0;
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  const carouselItems = [
+    ...images
+      .filter((image) => !removedImageIds.includes(image.id))
+      .map((image) => ({
+      id: image.id,
+      url: image.url,
+      altText: image.altText,
+      kind: "saved" as const,
+      image,
+      })),
+    ...pending.map((image) => ({
+      id: image.id,
+      url: image.preview,
+      altText: image.altText,
+      kind: "pending" as const,
+      image,
+    })),
+  ];
+  const activeIndex = Math.max(
+    0,
+    carouselItems.findIndex((item) => item.id === activeImageId),
+  );
+  const activeItem = carouselItems[activeIndex];
 
   useEffect(() => {
     pendingRef.current = pending;
@@ -265,19 +337,122 @@ export const ListingImagesEditor = forwardRef<
         shareable: false,
       }));
     setPending((current) => [...current, ...chosen]);
+    if (chosen.length) setActiveImageId(chosen[chosen.length - 1].id);
     if (files.length > remaining)
       setError("An entry can have up to 12 active images.");
   }
 
-  async function savePending() {
-    if (!pending.length) return;
-    if (!canChange) {
-      requestReason();
-      throw new Error("Enter a reason for the change before saving images.");
+  function updateSavedImage(
+    image: EntryImage,
+    changes: Partial<SavedImageDraft>,
+  ) {
+    setSavedDrafts((current) => {
+      const nextDraft = {
+        ...(current[image.id] ?? originalDraft(image)),
+        ...changes,
+      };
+      const next = { ...current };
+      if (sameDraft(nextDraft, originalDraft(image))) delete next[image.id];
+      else next[image.id] = nextDraft;
+      return next;
+    });
+  }
+
+  function setCommunityCard(imageId: string, selected: boolean) {
+    setSavedDrafts((current) => {
+      const next = { ...current };
+      for (const image of images) {
+        const base = originalDraft(image);
+        const draft = { ...(current[image.id] ?? base) };
+        if (selected) draft.shareable = image.id === imageId;
+        else if (image.id === imageId) draft.shareable = false;
+        if (sameDraft(draft, base)) delete next[image.id];
+        else next[image.id] = draft;
+      }
+      return next;
+    });
+    setPending((current) =>
+      current.map((image) => ({
+        ...image,
+        shareable: selected
+          ? image.id === imageId
+          : image.id === imageId
+            ? false
+            : image.shareable,
+      })),
+    );
+  }
+
+  function updatePendingImage(
+    image: PendingImage,
+    changes: Partial<PendingImage>,
+  ) {
+    if (changes.shareable) {
+      setCommunityCard(image.id, true);
+      return;
     }
+    setPending((current) =>
+      current.map((item) =>
+        item.id === image.id ? { ...item, ...changes } : item,
+      ),
+    );
+  }
+
+  function removeSavedImage(image: EntryImage) {
+    if (
+      !window.confirm(
+        "Remove this image from the entry when you save these changes?",
+      )
+    )
+      return;
+    setRemovedImageIds((current) =>
+      current.includes(image.id) ? current : [...current, image.id],
+    );
+    setSavedDrafts((current) => {
+      const next = { ...current };
+      delete next[image.id];
+      return next;
+    });
+  }
+
+  async function saveChanges(reason: string) {
+    if (!dirty) return;
     setBusy(true);
     setError(null);
     try {
+      const changedSavedImages = images.filter(
+        (image) => savedDrafts[image.id] && !removedImageIds.includes(image.id),
+      );
+      for (const image of changedSavedImages.filter(
+        (item) => !savedDrafts[item.id].shareable,
+      )) {
+        const draft = savedDrafts[image.id];
+        await mutate(
+          `/listings/${listingId}/images/${image.id}`,
+          imageResponse,
+          { ...draft, reason },
+          "PATCH",
+        );
+      }
+      for (const image of changedSavedImages.filter(
+        (item) => savedDrafts[item.id].shareable,
+      )) {
+        const draft = savedDrafts[image.id];
+        await mutate(
+          `/listings/${listingId}/images/${image.id}`,
+          imageResponse,
+          { ...draft, reason },
+          "PATCH",
+        );
+      }
+      for (const imageId of removedImageIds) {
+        await mutate(
+          `/listings/${listingId}/images/${imageId}`,
+          z.object({ ok: z.literal(true) }),
+          { reason },
+          "DELETE",
+        );
+      }
       for (const item of pending) {
         const prepared = await prepareImage(item.file);
         await uploadImage(
@@ -308,87 +483,200 @@ export const ListingImagesEditor = forwardRef<
     }
   }
 
-  useImperativeHandle(ref, () => ({ savePending }));
+  useImperativeHandle(ref, () => ({ saveChanges }));
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, maxWidth: 800 }}>
-      <Stack spacing={2}>
-        <Box>
-          <Typography variant="h2">Images</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Images are part of this entry and appear in its gallery when the
-            entry is published. Select “Use as a community card image” only when
-            you want to choose the one image used on listing cards and featured
-            first on the entry details page. Images are resized in your browser
-            before upload.
-          </Typography>
-          <ImageCommunityUseNotice />
-          <Typography variant="body2" color="text.secondary">
-            Choose images here, then select “Save changes” at the bottom of the
-            page to add them with the rest of your edits.
-          </Typography>
-        </Box>
-        {images.map((image) => (
-          <SavedImage
-            key={image.id}
-            image={image}
-            listingId={listingId}
-            reason={reason}
-            canChange={canChange}
-            busy={busy}
-            onChanged={onChanged}
-            onBusy={setBusy}
-            onError={setError}
-            onNeedReason={requestReason}
-          />
-        ))}
-        {pending.map((image) => (
-          <PendingImageCard
-            key={image.id}
-            image={image}
-            onChange={(changes) =>
-              setPending((current) =>
-                current.map((item) =>
-                  item.id === image.id
-                    ? { ...item, ...changes }
-                    : changes.shareable
-                      ? { ...item, shareable: false }
-                      : item,
-                ),
-              )
-            }
-            onRemove={() => {
-              URL.revokeObjectURL(image.preview);
-              setPending((current) =>
-                current.filter((item) => item.id !== image.id),
-              );
+    <Stack spacing={2}>
+      <Box>
+        <Typography variant="body2" color="text.secondary">
+          Images are part of this entry and appear in its gallery when the
+          entry is published. Select “Use as a community card image” only when
+          you want to choose the one image used on listing cards and featured
+          first on the entry details page. Images are resized in your browser
+          before upload.
+        </Typography>
+        <ImageCommunityUseNotice />
+        <Typography variant="body2" color="text.secondary">
+          Choose images here, then select “Save changes” at the bottom of the
+          page to add them with the rest of your edits.
+        </Typography>
+      </Box>
+      {activeItem && (
+        <>
+          <Box
+            sx={{
+              position: "relative",
+              display: "flex",
+              minHeight: { xs: 220, sm: 360 },
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              borderRadius: 1,
+              bgcolor: "grey.100",
             }}
-          />
-        ))}
-        <input
-          ref={input}
-          hidden
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          onChange={(event) => {
-            chooseFiles(event.target.files);
-            event.target.value = "";
-          }}
-        />
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button
-            variant="outlined"
-            startIcon={<ImageOutlined />}
-            disabled={images.length + pending.length >= 12 || busy}
-            onClick={() => input.current?.click()}
           >
-            Choose images
-          </Button>
-        </Stack>
-        {error && <Alert severity="error">{error}</Alert>}
+            <Box
+              component="img"
+              src={activeItem.url}
+              alt={activeItem.altText || "Entry image"}
+              sx={{ maxWidth: "100%", maxHeight: 460, objectFit: "contain" }}
+            />
+            {carouselItems.length > 1 && (
+              <>
+                <IconButton
+                  aria-label="Previous entry image"
+                  onClick={() =>
+                    setActiveImageId(
+                      carouselItems[
+                        (activeIndex - 1 + carouselItems.length) %
+                          carouselItems.length
+                      ].id,
+                    )
+                  }
+                  sx={{
+                    position: "absolute",
+                    left: 8,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <ArrowBackIosNew fontSize="small" />
+                </IconButton>
+                <IconButton
+                  aria-label="Next entry image"
+                  onClick={() =>
+                    setActiveImageId(
+                      carouselItems[(activeIndex + 1) % carouselItems.length].id,
+                    )
+                  }
+                  sx={{
+                    position: "absolute",
+                    right: 8,
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <ArrowForwardIos fontSize="small" />
+                </IconButton>
+              </>
+            )}
+          </Box>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ overflowX: "auto", pb: 0.5 }}
+            aria-label="Entry image thumbnails"
+          >
+            {carouselItems.map((item, index) => {
+              const isCommunityCard =
+                item.kind === "saved"
+                  ? draftFor(item.image).shareable
+                  : item.image.shareable;
+              return (
+                <Box
+                  key={item.id}
+                  component="button"
+                  type="button"
+                  aria-label={`Show entry image ${index + 1}${isCommunityCard ? ", community card image" : ""}`}
+                  aria-pressed={index === activeIndex}
+                  onClick={() => setActiveImageId(item.id)}
+                  sx={{
+                    position: "relative",
+                    flex: "0 0 auto",
+                    p: 0,
+                    width: 72,
+                    height: 72,
+                    border: "2px solid",
+                    borderColor:
+                      index === activeIndex ? "primary.main" : "divider",
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    bgcolor: "background.paper",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={item.url}
+                    alt=""
+                    sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                  {isCommunityCard && (
+                    <Star
+                      aria-label="Community card image"
+                      sx={{
+                        position: "absolute",
+                        right: 3,
+                        bottom: 3,
+                        color: "warning.main",
+                        filter: "drop-shadow(0 0 2px white)",
+                      }}
+                    />
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            {activeIndex + 1} of {carouselItems.length}
+          </Typography>
+          {activeItem.kind === "saved" ? (
+            <SavedImage
+              key={activeItem.id}
+              image={activeItem.image}
+              value={draftFor(activeItem.image)}
+              busy={busy}
+              onChange={(changes) =>
+                updateSavedImage(activeItem.image, changes)
+              }
+              onCommunityCardChange={(selected) =>
+                setCommunityCard(activeItem.image.id, selected)
+              }
+              onRemove={() => removeSavedImage(activeItem.image)}
+              showPreview={false}
+            />
+          ) : (
+            <PendingImageCard
+              key={activeItem.id}
+              image={activeItem.image}
+              showPreview={false}
+              onChange={(changes) =>
+                updatePendingImage(activeItem.image, changes)
+              }
+              onRemove={() => {
+                URL.revokeObjectURL(activeItem.image.preview);
+                setPending((current) =>
+                  current.filter((item) => item.id !== activeItem.id),
+                );
+              }}
+            />
+          )}
+        </>
+      )}
+      <input
+        ref={input}
+        hidden
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        onChange={(event) => {
+          chooseFiles(event.target.files);
+          event.target.value = "";
+        }}
+      />
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+        <Button
+          variant="outlined"
+          startIcon={<ImageOutlined />}
+          disabled={
+            images.length - removedImageIds.length + pending.length >= 12 ||
+            busy
+          }
+          onClick={() => input.current?.click()}
+        >
+          Choose images
+        </Button>
       </Stack>
-    </Paper>
+      {error && <Alert severity="error">{error}</Alert>}
+    </Stack>
   );
 });
 
@@ -396,25 +684,32 @@ export function PendingImageCard({
   image,
   onChange,
   onRemove,
+  showPreview = true,
 }: {
   image: PendingImage;
   onChange: (changes: Partial<PendingImage>) => void;
   onRemove: () => void;
+  showPreview?: boolean;
 }) {
   return (
     <Paper variant="outlined" sx={{ p: 1.5 }}>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-        <Box
-          component="img"
-          src={image.preview}
-          alt=""
-          sx={{
-            width: { xs: "100%", sm: 150 },
-            height: 120,
-            objectFit: "cover",
-            borderRadius: 1,
-          }}
-        />
+      <Stack
+        direction={showPreview ? { xs: "column", sm: "row" } : "column"}
+        spacing={2}
+      >
+        {showPreview && (
+          <Box
+            component="img"
+            src={image.preview}
+            alt=""
+            sx={{
+              width: { xs: "100%", sm: 150 },
+              height: 120,
+              objectFit: "cover",
+              borderRadius: 1,
+            }}
+          />
+        )}
         <Stack spacing={1} sx={{ flex: 1 }}>
           <TextField
             label="Image description"
@@ -537,150 +832,75 @@ export function ImageDraftPicker({
 
 function SavedImage({
   image,
-  listingId,
-  reason,
-  canChange,
   busy,
-  onChanged,
-  onBusy,
-  onError,
-  onNeedReason,
+  value,
+  onChange,
+  onCommunityCardChange,
+  onRemove,
+  showPreview = true,
 }: {
   image: EntryImage;
-  listingId: string;
-  reason: string;
-  canChange: boolean;
   busy: boolean;
-  onChanged: () => Promise<void>;
-  onBusy: (busy: boolean) => void;
-  onError: (error: string | null) => void;
-  onNeedReason: () => void;
+  value: SavedImageDraft;
+  onChange: (changes: Partial<SavedImageDraft>) => void;
+  onCommunityCardChange: (selected: boolean) => void;
+  onRemove: () => void;
+  showPreview?: boolean;
 }) {
-  const [altText, setAltText] = useState(image.altText);
-  const [caption, setCaption] = useState(image.caption);
-  const changed = altText !== image.altText || caption !== image.caption;
-  async function update(changes: {
-    altText?: string;
-    caption?: string;
-    shareable?: boolean;
-  }) {
-    if (!canChange) {
-      onNeedReason();
-      return;
-    }
-    onBusy(true);
-    onError(null);
-    try {
-      await mutate(
-        `/listings/${listingId}/images/${image.id}`,
-        imageResponse,
-        {
-          ...changes,
-          reason,
-        },
-        "PATCH",
-      );
-      await onChanged();
-    } catch (updateError) {
-      onError(
-        updateError instanceof Error
-          ? updateError.message
-          : "Image update failed.",
-      );
-    } finally {
-      onBusy(false);
-    }
-  }
-  async function remove() {
-    if (!canChange) {
-      onNeedReason();
-      return;
-    }
-    if (
-      !window.confirm(
-        "Remove this image from the entry? It will no longer be displayed.",
-      )
-    )
-      return;
-    onBusy(true);
-    onError(null);
-    try {
-      await mutate(
-        `/listings/${listingId}/images/${image.id}`,
-        okSchema,
-        { reason },
-        "DELETE",
-      );
-      await onChanged();
-    } catch (removeError) {
-      onError(
-        removeError instanceof Error
-          ? removeError.message
-          : "Image removal failed.",
-      );
-    } finally {
-      onBusy(false);
-    }
-  }
   return (
     <Paper variant="outlined" sx={{ p: 1.5 }}>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-        <Box
-          component="img"
-          src={image.url}
-          alt={image.altText || "Saved entry image"}
-          sx={{
-            width: { xs: "100%", sm: 150 },
-            height: 120,
-            objectFit: "cover",
-            borderRadius: 1,
-          }}
-        />
+      <Stack
+        direction={showPreview ? { xs: "column", sm: "row" } : "column"}
+        spacing={2}
+      >
+        {showPreview && (
+          <Box
+            component="img"
+            src={image.url}
+            alt={image.altText || "Saved entry image"}
+            sx={{
+              width: { xs: "100%", sm: 150 },
+              height: 120,
+              objectFit: "cover",
+              borderRadius: 1,
+            }}
+          />
+        )}
         <Stack spacing={1} sx={{ flex: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            {image.isLead ? "Community card image" : "Entry image"}
+            {value.shareable ? "Community card image" : "Entry image"}
           </Typography>
           <TextField
             label="Image description"
-            value={altText}
-            onChange={(event) => setAltText(event.target.value)}
+            value={value.altText}
+            onChange={(event) => onChange({ altText: event.target.value })}
           />
           <TextField
             label="Caption (optional)"
-            value={caption}
-            onChange={(event) => setCaption(event.target.value)}
+            value={value.caption}
+            onChange={(event) => onChange({ caption: event.target.value })}
           />
           <Stack direction={{ xs: "column", sm: "row" }}>
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={image.isLead}
+                  checked={value.shareable}
                   disabled={busy}
-                  onChange={(_, value) => void update({ shareable: value })}
+                  onChange={(_, selected) => onCommunityCardChange(selected)}
                 />
               }
               label={<CommunityCardLabel />}
             />
           </Stack>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-            {changed && (
-              <Button
-                startIcon={<SaveOutlined />}
-                disabled={busy}
-                onClick={() => void update({ altText, caption })}
-              >
-                Save image details
-              </Button>
-            )}
-            <Button
-              color="error"
-              startIcon={<DeleteOutline />}
-              disabled={busy}
-              onClick={() => void remove()}
-            >
-              Remove image
-            </Button>
-          </Stack>
+          <Button
+            color="error"
+            startIcon={<DeleteOutline />}
+            disabled={busy}
+            onClick={onRemove}
+            sx={{ alignSelf: "flex-start" }}
+          >
+            Remove image
+          </Button>
         </Stack>
       </Stack>
     </Paper>

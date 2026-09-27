@@ -12,6 +12,7 @@ import {
   MenuItem,
   Pagination,
   Paper,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -586,6 +587,26 @@ function Security() {
 function Entries({ all }: { all: boolean }) {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [dismissedNotice, setDismissedNotice] = useState<string | null>(null);
+  const routeNotice = (
+    location.state as {
+      snackbar?: {
+        severity: "success" | "warning" | "error";
+        message: string;
+      };
+    } | null | undefined
+  )?.snackbar;
+  const notice =
+    routeNotice && routeNotice.message !== dismissedNotice ? routeNotice : null;
+  const closeNotice = () => {
+    if (routeNotice) setDismissedNotice(routeNotice.message);
+    navigate(location.pathname + location.search, {
+      replace: true,
+      state: null,
+    });
+  };
   const page = Math.max(1, Math.min(10000, Number(params.get("page")) || 1));
   const result = useQuery({
     queryKey: ["private", "entries", user!.id, all, page],
@@ -661,6 +682,15 @@ function Entries({ all }: { all: boolean }) {
           />
         </>
       )}
+      <Snackbar open={!!notice} autoHideDuration={6000} onClose={closeNotice}>
+        <Alert
+          severity={notice?.severity}
+          onClose={closeNotice}
+          variant="filled"
+        >
+          {notice?.message}
+        </Alert>
+      </Snackbar>
     </Page>
   );
 }

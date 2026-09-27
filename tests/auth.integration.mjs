@@ -397,7 +397,7 @@ try {
   await alice.call(`/listings/${owned.id}`, "PUT", {
     entry: { ...entry, name: "Updated title" },
     version: 2,
-    reason: "Correct title",
+    reason: "",
   });
   const updated = await anonymous.call(`/listings/${owned.id}`);
   assert.equal(updated.version, 3);
@@ -1139,11 +1139,9 @@ try {
   ]);
   await page.goto(process.env.APP_ORIGIN + `/listings/${anonEntry.id}/edit`);
   await page
-    .getByRole("textbox", { name: "Reason for change", exact: true })
-    .fill("Browser test correction");
-  await page
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Browser corrected listing");
+  await page.getByRole("button", { name: /Connections/ }).click();
   await page
     .getByRole("button", { name: "Add another link", exact: true })
     .click();
@@ -1173,8 +1171,16 @@ try {
   await expect(page.getByLabel("Connection 1 URL")).toHaveValue(
     "https://example.org/browser-site",
   );
-  await page.getByRole("button", { name: "Save entry", exact: true }).click();
-  await expect(page.getByText("revision 2", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  const saveReason = page.getByRole("dialog").getByLabel("Reason for change");
+  await saveReason.fill("Browser test correction");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Continue" })
+    .click();
+  await expect(
+    page.getByText("Entry updated.", { exact: false }),
+  ).toBeVisible();
   const browserConnections = (await anonymous.call(`/listings/${anonEntry.id}`))
     .connections;
   assert.equal(browserConnections.length, 2);
@@ -1186,18 +1192,25 @@ try {
     (await anonymous.call(`/listings/${anonEntry.id}`)).name,
     "Browser corrected listing",
   );
+  await page.goto(process.env.APP_ORIGIN + `/listings/${anonEntry.id}/edit`);
   page.on("dialog", (dialog) => dialog.accept());
   const reviewResponse = page.waitForResponse(
     (response) =>
       response.url().endsWith(`/api/listings/${anonEntry.id}/action`) &&
       response.request().method() === "POST",
   );
+  await page.getByRole("button", { name: "Mark editor-reviewed" }).click();
   await page
-    .getByRole("button", { name: "Mark saved entry editor-reviewed" })
+    .getByRole("dialog")
+    .getByLabel("Reason for change")
+    .fill("Browser review completed");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Continue" })
     .click();
   assert.equal((await reviewResponse).status(), 200);
   await expect(
-    page.getByText("Entry updated.", { exact: false }),
+    page.getByText("Entry action completed.", { exact: false }),
   ).toBeVisible();
   await page.goto(process.env.APP_ORIGIN + `/listings/${anonEntry.id}/edit`);
   assert.ok(

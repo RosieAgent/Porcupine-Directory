@@ -1,22 +1,19 @@
 import { useRef, useState } from "react";
-import { OwnershipAssignment } from "../components/OwnershipAssignment";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Button,
-  Checkbox,
-  FormControlLabel,
-  Paper,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Snackbar,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router";
 import { z } from "zod";
-import Check from "@mui/icons-material/Check";
-import FactCheckOutlined from "@mui/icons-material/FactCheckOutlined";
-import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
-import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
-import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
 import { listingSchema } from "../../shared/contracts";
 import type { Submission } from "../../shared/contracts";
 import { okSchema } from "../../shared/auth";
@@ -24,70 +21,164 @@ import { request, mutate } from "../lib/api";
 import { useAuth } from "../state/AuthProvider";
 import { Page, Loading, ErrorState } from "../components/Page";
 import { ListingForm } from "../components/ListingForm";
-import { DeleteListingDialog } from "../components/DeleteListingDialog";
+import { EntryActionsMenu } from "../components/EntryActionsMenu";
 import {
   ListingImagesEditor,
   type ListingImagesEditorHandle,
 } from "../components/EntryImages";
+
+const EDIT_FORM_ID = "edit-listing-form";
+
+type ReasonContinuation = (reason: string) => void | Promise<void>;
+
 export default function EditListingPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const client = useQueryClient();
-  const [reason, setReason] = useState("");
-  const [attest, setAttest] = useState(false);
   const imageEditorRef = useRef<ListingImagesEditorHandle>(null);
+  const [reason, setReason] = useState("");
+  const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+  const [reasonDialogError, setReasonDialogError] = useState("");
+  const [reasonContinuation, setReasonContinuation] =
+    useState<ReasonContinuation | null>(null);
+  const [formDirty, setFormDirty] = useState(false);
+  const [imageDirty, setImageDirty] = useState(false);
+
   const entry = useQuery({
     queryKey: ["private", "edit", id, user?.id],
-    queryFn: () => request(`/listings/${id}/edit`, listingSchema),
+    queryFn: () => request("/listings/" + id + "/edit", listingSchema),
     enabled: !!user,
   });
   const permissions = useQuery({
     queryKey: ["private", "permissions", id, user?.id],
     queryFn: () =>
       request(
-        `/listings/${id}/permissions`,
+        "/listings/" + id + "/permissions",
         z.object({
+          isOwner: z.boolean(),
           canEdit: z.boolean(),
           canConfirm: z.boolean(),
           canReview: z.boolean(),
           canDelete: z.boolean(),
+          reasonRequired: z.boolean(),
         }),
       ),
     enabled: !!user,
   });
+  const reasonRequired = permissions.data?.reasonRequired ?? false;
   const update = useMutation({
-    mutationFn: async (data: Submission) => {
+    mutationFn: async ({
+      data,
+      changeReason,
+    }: {
+      data: Submission;
+      changeReason: string;
+    }) => {
       await mutate(
-        `/listings/${id}`,
+        "/listings/" + id,
         okSchema,
-        { entry: data, version: entry.data!.version, reason },
+        {
+          entry: data,
+          version: entry.data!.version,
+          reason: changeReason,
+        },
         "PUT",
       );
-      try {
-        await imageEditorRef.current?.savePending();
-      } catch (error) {
-        await client.invalidateQueries({ queryKey: ["private", "edit", id] });
-        throw error;
-      }
+      await imageEditorRef.current?.saveChanges(changeReason);
     },
     onSuccess: async () => {
-      setAttest(false);
       await client.invalidateQueries();
+      navigate("/listings/" + id, {
+        state: {
+          snackbar: {
+            severity: "success",
+            message:
+              "Entry updated. Previous confirmation and review badges were cleared.",
+          },
+        },
+      });
     },
   });
   const action = useMutation({
-    mutationFn: (action: string) =>
-      mutate(`/listings/${id}/action`, okSchema, {
-        action,
+    mutationFn: ({
+      action: actionName,
+      changeReason,
+    }: {
+      action: string;
+      changeReason: string;
+    }) =>
+      mutate("/listings/" + id + "/action", okSchema, {
+        action: actionName,
         version: entry.data!.version,
-        reason,
+        reason: changeReason,
       }),
     onSuccess: async () => {
-      setAttest(false);
+      setReason("");
       await client.invalidateQueries();
+      setSnackbar({
+        severity: "success",
+        message: "Entry action completed.",
+      });
     },
   });
+  const [snackbar, setSnackbar] = useState<{
+    severity: "error" | "warning" | "success";
+    message: string;
+  } | null>(null);
+
+  function askForReason(continuation: ReasonContinuation) {
+    setReason("");
+    setReasonDialogError("");
+    setReasonContinuation(() => continuation);
+    setReasonDialogOpen(true);
+  }
+
+  function closeReasonDialog() {
+    if (update.isPending || action.isPending) return;
+    setReasonDialogOpen(false);
+    setReasonDialogError("");
+    setReasonContinuation(null);
+  }
+
+  async function continueWithReason() {
+    const changeReason = reason.trim();
+    if (changeReason.length < 3) {
+      setReasonDialogError("Please provide at least 3 characters.");
+      return;
+    }
+    const continuation = reasonContinuation;
+    setReasonDialogOpen(false);
+    setReasonDialogError("");
+    setReasonContinuation(null);
+    if (continuation) await continuation(changeReason);
+  }
+
+  function save(data: Submission) {
+    if (!formDirty && !imageDirty) return;
+    if (reasonRequired) {
+      askForReason((changeReason) => update.mutate({ data, changeReason }));
+      return;
+    }
+    update.mutate({ data, changeReason: "" });
+  }
+
+  function performAction(actionName: string, changeReason: string) {
+    action.mutate({
+      action: actionName,
+      changeReason: reasonRequired ? changeReason : "",
+    });
+  }
+
+  function runAction(actionName: string, confirmation?: string) {
+    if (confirmation && !window.confirm(confirmation)) return;
+    if (reasonRequired) {
+      askForReason((changeReason) => performAction(actionName, changeReason));
+      return;
+    }
+    performAction(actionName, "");
+  }
+
   if (loading) return <Loading />;
   if (!user)
     return (
@@ -104,8 +195,10 @@ export default function EditListingPage() {
       </Page>
     );
   const listing = entry.data;
-  const validReason = reason.trim().length >= 3;
   const busy = update.isPending || action.isPending;
+  const errorMessage = update.error?.message ?? action.error?.message;
+  const hasChanges = formDirty || imageDirty;
+
   return (
     <Page
       title={"Manage " + listing.name}
@@ -113,221 +206,158 @@ export default function EditListingPage() {
       account
       shareable={false}
     >
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        useFlexGap
-        sx={{ alignItems: { sm: "center" }, flexWrap: "wrap" }}
-      >
-        <Typography>
-          Status:{" "}
-          {listing.status === "archived"
-            ? "Hidden"
-            : listing.status === "pending_review"
-              ? "Pending publication"
-              : "Published"}{" "}
-          · revision {listing.version}
-        </Typography>
-        {listing.status === "published" && (
-          <Button component={Link} to={`/listings/${id}`}>
-            View public entry
-          </Button>
-        )}
-        {permissions.data?.canReview && (
-          <Button
-            component={Link}
-            to={`/listings/${id}/history`}
-            startIcon={<HistoryOutlined />}
-          >
-            Revision history
-          </Button>
-        )}
+      <Stack spacing={2}>
+          <Typography color="text.secondary">
+            Revision {listing.version} ·{" "}
+            {listing.status === "archived"
+              ? "Hidden"
+              : listing.status === "pending_review"
+                ? "Pending publication"
+                : "Published"}
+          </Typography>
+          <ListingForm
+            key={listing.version}
+            formId={EDIT_FORM_ID}
+            hideSaveAction
+            initial={{
+              kind: listing.kind,
+              name: listing.name,
+              summary: listing.summary,
+              description: listing.description,
+              url: listing.url ?? "",
+              connections: listing.connections,
+              contactUrl: listing.contactUrl ?? "",
+              location: listing.location ?? "",
+              tags: listing.tags,
+              accessMode: listing.accessMode,
+              accessInstructions: listing.accessInstructions,
+              lifecycle: listing.lifecycle,
+              seekingOrganizer: listing.seekingOrganizer,
+              publicPhone: listing.publicPhone,
+              publicEmail: listing.publicEmail,
+              publicAddress: listing.publicAddress,
+              openingHours: listing.openingHours,
+            }}
+            onSave={save}
+            onDirtyChange={setFormDirty}
+            pending={busy}
+            disabled={busy || !permissions.data?.canEdit}
+            error={update.error}
+            imageContent={
+              <ListingImagesEditor
+                ref={imageEditorRef}
+                listingId={id}
+                images={listing.images}
+                onDirtyChange={setImageDirty}
+              />
+            }
+          />
       </Stack>
-      {permissions.data?.canConfirm && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Typography variant="h2">Confirm accuracy</Typography>
-            <Typography variant="body2" color="text.secondary">
-              This is separate from saving edits. Use it only after reviewing
-              the currently saved entry. It records your confirmation date; it
-              does not claim ownership or make the entry official.
+
+      <EntryActionsMenu
+        listing={listing}
+        userId={user.id}
+        mode="edit"
+        canEdit={!!permissions.data?.canEdit}
+        canConfirm={!!permissions.data?.canConfirm}
+        canReview={!!permissions.data?.canReview}
+        canDelete={!!permissions.data?.canDelete}
+        shareable={listing.status === "published"}
+        permissionsPending={permissions.isPending}
+        busy={busy}
+        hasChanges={hasChanges}
+        savePending={update.isPending}
+        onSave={() => {
+          const form = document.getElementById(EDIT_FORM_ID);
+          if (form instanceof HTMLFormElement) form.requestSubmit();
+        }}
+        onAction={runAction}
+        onDeleted={() => {
+          const destination =
+            user.role === "user" ? "/account/entries" : "/editor";
+          navigate(destination, {
+            state: {
+              snackbar: {
+                severity: "success",
+                message: `“${listing.name}” was deleted.`,
+              },
+            },
+          });
+        }}
+      />
+
+      <Dialog
+        open={reasonDialogOpen}
+        onClose={closeReasonDialog}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="change-reason-title"
+      >
+        <DialogTitle id="change-reason-title">
+          Reason for this change
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Typography>
+              Because you are editing an entry you do not own, please explain
+              why this change is being made. This reason is retained in the
+              audit history.
             </Typography>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={attest}
-                  onChange={(_, value) => setAttest(value)}
-                />
+            <TextField
+              autoFocus
+              required
+              label="Reason for change"
+              value={reason}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setReasonDialogError("");
+              }}
+              error={!!reasonDialogError}
+              helperText={
+                reasonDialogError ||
+                "At least 3 characters. Do not include personal information."
               }
-              label="I reviewed the saved entry and believe it is accurate."
+              multiline
+              minRows={2}
+              slotProps={{ htmlInput: { maxLength: 500 } }}
             />
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1}
-              useFlexGap
-            >
-              <Button
-                variant="outlined"
-                startIcon={<Check />}
-                disabled={!attest || !validReason || busy}
-                onClick={() => action.mutate("confirm")}
-              >
-                Confirm saved entry
-              </Button>
-              {listing.status !== "archived" && (
-                <Button
-                  color="error"
-                  variant="outlined"
-                  disabled={!validReason || busy}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Remove this entry from public browsing? It will remain in My entries and private revision history. An editor can restore publication.",
-                      )
-                    )
-                      action.mutate("hide");
-                  }}
-                >
-                  Remove from directory
-                </Button>
-              )}
-            </Stack>
           </Stack>
-        </Paper>
-      )}
-      {permissions.data?.canReview && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Typography variant="h2">Monitor actions</Typography>
-            <Typography variant="body2" color="text.secondary">
-              These actions apply to the saved revision, not edits that are
-              still waiting to be saved.
-            </Typography>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1}
-              useFlexGap
-            >
-              <Button
-                startIcon={<FactCheckOutlined />}
-                disabled={!validReason || busy}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Have you reviewed the currently saved information? This does not certify its accuracy.",
-                    )
-                  )
-                    action.mutate("review");
-                }}
-              >
-                Mark saved entry editor-reviewed
-              </Button>
-              <Button
-                startIcon={
-                  listing.status === "published" ? (
-                    <VisibilityOffOutlined />
-                  ) : (
-                    <VisibilityOutlined />
-                  )
-                }
-                disabled={!validReason || busy}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      listing.status === "published"
-                        ? "Hide this entry from public browsing?"
-                        : "Publish this entry?",
-                    )
-                  )
-                    action.mutate(
-                      listing.status === "published" ? "hide" : "publish",
-                    );
-                }}
-              >
-                {listing.status === "published"
-                  ? "Hide entry"
-                  : "Publish entry"}
-              </Button>
-              <OwnershipAssignment
-                key={id + ":" + user.id}
-                listingId={id}
-                version={listing.version}
-                button
-              />
-            </Stack>
-          </Stack>
-        </Paper>
-      )}
-      {permissions.data?.canDelete && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Typography variant="h2">Danger zone</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Permanent deletion is different from hiding an entry. Use it only
-              when this listing should no longer exist in the directory.
-            </Typography>
-            <Stack direction="row" sx={{ flexWrap: "wrap" }}>
-              <DeleteListingDialog
-                listingId={id}
-                listingName={listing.name}
-                disabled={busy}
-                onDeleted={() =>
-                  navigate(
-                    user.role === "user" ? "/account/entries" : "/editor",
-                  )
-                }
-              />
-            </Stack>
-          </Stack>
-        </Paper>
-      )}
-      {action.error && <Alert severity="error">{action.error.message}</Alert>}
-      {(action.isSuccess || update.isSuccess) && (
-        <Alert severity="success">
-          Entry updated. Content edits clear previous confirmation and review
-          badges.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeReasonDialog} disabled={busy}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => void continueWithReason()}
+            disabled={busy}
+          >
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!errorMessage || !!snackbar}
+        autoHideDuration={6000}
+        onClose={() => {
+          update.reset();
+          action.reset();
+          setSnackbar(null);
+        }}
+      >
+        <Alert
+          severity={errorMessage ? "error" : snackbar?.severity}
+          onClose={() => {
+            update.reset();
+            action.reset();
+            setSnackbar(null);
+          }}
+          variant="filled"
+        >
+          {errorMessage ?? snackbar?.message}
         </Alert>
-      )}
-      <ListingImagesEditor
-        ref={imageEditorRef}
-        listingId={id}
-        images={listing.images}
-        reason={reason}
-        onChanged={async () => {
-          await client.invalidateQueries({ queryKey: ["private", "edit", id] });
-          await client.invalidateQueries({ queryKey: ["listing", id] });
-        }}
-      />
-      <ListingForm
-        key={listing.version}
-        initial={{
-          kind: listing.kind,
-          name: listing.name,
-          summary: listing.summary,
-          description: listing.description,
-          url: listing.url ?? "",
-          connections: listing.connections,
-          contactUrl: listing.contactUrl ?? "",
-          location: listing.location ?? "",
-          tags: listing.tags,
-          accessMode: listing.accessMode,
-          accessInstructions: listing.accessInstructions,
-          lifecycle: listing.lifecycle,
-          seekingOrganizer: listing.seekingOrganizer,
-          publicPhone: listing.publicPhone,
-          publicEmail: listing.publicEmail,
-          publicAddress: listing.publicAddress,
-          openingHours: listing.openingHours,
-        }}
-        onSave={(data) => {
-          if (validReason && !busy) update.mutate(data);
-        }}
-        pending={busy}
-        disabled={!validReason}
-        error={update.error}
-        reason={reason}
-        onReasonChange={setReason}
-      />
+      </Snackbar>
     </Page>
   );
 }

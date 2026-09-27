@@ -72,8 +72,11 @@ export const imageMetadataSchema = z.object({
   shareable: z.boolean().default(false),
   reason: z.string().trim().min(3).max(500),
 });
+const browserImageMetadataSchema = imageMetadataSchema.extend({
+  reason: z.string().trim().max(500).default(""),
+});
 const imagePatchSchema = imageMetadataSchema.partial().extend({
-  reason: z.string().trim().min(3).max(500),
+  reason: z.string().trim().max(500).default(""),
 });
 
 export function imageUrl(id: string, imageId: string) {
@@ -112,6 +115,14 @@ async function authorizedImageListing(client: PoolClient, req: Request) {
   if (!listing) throw new HttpError(404, "Entry not found.");
   if (listing.owner_id !== req.account!.id) assertStaff(req);
   return listing;
+}
+
+function requireChangeReason(req: Request, ownerId: string, reason: string) {
+  if (ownerId !== req.account?.id && reason.trim().length < 3)
+    throw new HttpError(
+      400,
+      "Provide a reason for this change because you are not the entry owner.",
+    );
 }
 
 async function auditImage(
@@ -214,10 +225,12 @@ listings.get("/:id/permissions", async (req, res) => {
   );
   const owner = !!req.account && rows[0]?.owner_id === req.account.id;
   res.json({
+    isOwner: owner,
     canEdit: owner || isEditor(req),
     canConfirm: owner,
     canReview: isEditor(req),
     canDelete: owner || isEditor(req),
+    reasonRequired: !owner,
   });
 });
 listings.get("/:id/edit", requireUser, async (req, res) => {
@@ -288,7 +301,7 @@ async function lockedEntry(client: PoolClient, req: Request, version: number) {
 }
 const changeSchema = z.object({
   version: z.number().int().positive(),
-  reason: z.string().trim().min(3).max(500),
+  reason: z.string().trim().max(500).default(""),
 });
 const deleteSchema = z.object({
   confirmation: z.string().trim().min(1).max(160),
@@ -435,6 +448,7 @@ listings.put("/:id", requireUser, async (req, res) => {
     await requireCurrentSession(client, req);
     await client.query("SELECT pg_advisory_xact_lock(4350010)");
     const entry = await lockedEntry(client, req, data.version);
+    requireChangeReason(req, entry.owner_id, data.reason);
     data.entry.tags = await canonicalTags(client, data.entry.tags, entry.tags);
     data.entry.kind = entry.kind; // Legacy compatibility metadata, not an editable category.
     validateLocation(data.entry.location, entry.location ?? "");
@@ -449,6 +463,7 @@ listings.post("/:id/action", requireUser, async (req, res) => {
     .parse(req.body);
   await transaction(async (client) => {
     const entry = await lockedEntry(client, req, data.version);
+    requireChangeReason(req, entry.owner_id, data.reason);
     if (data.action === "confirm") {
       if (entry.owner_id !== req.account!.id)
         throw new HttpError(
@@ -524,6 +539,7 @@ listings.post("/:id/restore", requireStaff, async (req, res) => {
     await requireCurrentSession(client, req);
     await client.query("SELECT pg_advisory_xact_lock(4350010)");
     const entry = await lockedEntry(client, req, data.version);
+    requireChangeReason(req, entry.owner_id, data.reason);
     const { rows } = await client.query(
       "SELECT after_data FROM listing_revisions WHERE listing_id=$1 AND version=$2",
       [entry.id, data.targetVersion],
@@ -603,7 +619,7 @@ listings.post(
       Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
       mimeType,
     );
-    const metadata = imageMetadataSchema.parse({
+    const metadata = browserImageMetadataSchema.parse({
       altText: req.get("x-image-alt") ?? "",
       caption: req.get("x-image-caption") ?? "",
       shareable: req.get("x-image-shareable") === "true",
@@ -617,6 +633,7 @@ listings.post(
     const image = await transaction(async (client) => {
       await requireCurrentSession(client, req);
       const listing = await authorizedImageListing(client, req);
+      requireChangeReason(req, listing.owner_id, metadata.reason);
       return insertListingImage(
         client,
         req,
@@ -639,6 +656,7 @@ listings.patch("/:id/images/:imageId", requireUser, async (req, res) => {
   const image = await transaction(async (client) => {
     await requireCurrentSession(client, req);
     const listing = await authorizedImageListing(client, req);
+    requireChangeReason(req, listing.owner_id, data.reason);
     const currentResult = await client.query(
       `SELECT id,alt_text AS "altText",caption,shareable,is_lead AS "isLead"
        FROM entry_images WHERE id=$1 AND listing_id=$2 AND deleted_at IS NULL FOR UPDATE`,
@@ -685,11 +703,12 @@ listings.patch("/:id/images/:imageId", requireUser, async (req, res) => {
 
 listings.delete("/:id/images/:imageId", requireUser, async (req, res) => {
   const data = z
-    .object({ reason: z.string().trim().min(3).max(500) })
+    .object({ reason: z.string().trim().max(500).default("") })
     .parse(req.body);
   await transaction(async (client) => {
     await requireCurrentSession(client, req);
     const listing = await authorizedImageListing(client, req);
+    requireChangeReason(req, listing.owner_id, data.reason);
     const current = await client.query(
       "SELECT id FROM entry_images WHERE id=$1 AND listing_id=$2 AND deleted_at IS NULL FOR UPDATE",
       [z.uuid().parse(req.params.imageId), listing.id],
@@ -840,14 +859,20 @@ listings.get("/:id", async (req, res) => {
     return;
   }
   const result = await pool.query(
-    `SELECT ${publicListingColumns} FROM listings WHERE id=$1 AND status='published'`,
+    `SELECT ${publicListingColumns},owner_id FROM listings WHERE id=$1`,
     [req.params.id],
   );
   if (!result.rows.length) {
     res.status(404).json({ error: "Listing not found." });
     return;
   }
-  res.json(result.rows[0]);
+  const listing = result.rows[0];
+  if (listing.status !== "published") {
+    if (!req.account || (listing.owner_id !== req.account.id && !isEditor(req)))
+      throw new HttpError(404, "Listing not found.");
+  }
+  delete listing.owner_id;
+  res.json(listing);
 });
 
 listings.post("/", limit("submission", 20, 60), async (req, res) => {

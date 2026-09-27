@@ -5,10 +5,14 @@ import {
   CardContent,
   IconButton,
   Link,
+  Alert,
   Stack,
+  Snackbar,
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useState } from "react";
+import type { ReactNode } from "react";
 import BookmarkBorder from "@mui/icons-material/BookmarkBorder";
 import Bookmark from "@mui/icons-material/Bookmark";
 import { Link as RouterLink } from "react-router";
@@ -21,22 +25,70 @@ import { TopicTags } from "./TopicTags";
 import { AccessBadge } from "./AccessBadge";
 import { CardImage } from "./EntryImages";
 
-export function SaveButton({ listing }: { listing: Listing }) {
+export function SaveButton({
+  listing,
+  trigger,
+}: {
+  listing: Pick<Listing, "id" | "name">;
+  trigger?: (
+    toggle: () => Promise<boolean>,
+    saved: boolean,
+    busy: boolean,
+  ) => ReactNode;
+}) {
   const { ids, toggle, busy } = useSaved();
+  const [notice, setNotice] = useState<{
+    severity: "error" | "success";
+    message: string;
+  } | null>(null);
   const saved = ids.includes(listing.id);
   const label = (saved ? "Unsave " : "Save ") + listing.name;
+  const saveToggle = () => toggle(listing.id);
+  const handleToggle = async () => {
+    try {
+      const nextSaved = await saveToggle();
+      setNotice({
+        severity: "success",
+        message: nextSaved ? "Entry bookmarked." : "Bookmark removed.",
+      });
+    } catch (error) {
+      setNotice({
+        severity: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to update the bookmark.",
+      });
+    }
+  };
+  if (trigger) return trigger(saveToggle, saved, busy);
   return (
-    <Tooltip title={label}>
-      <IconButton
-        aria-label={label}
-        aria-pressed={saved}
-        color="primary"
-        disabled={busy}
-        onClick={() => toggle(listing.id)}
+    <>
+      <Tooltip title={label}>
+        <IconButton
+          aria-label={label}
+          aria-pressed={saved}
+          color="primary"
+          disabled={busy}
+          onClick={() => void handleToggle()}
+        >
+          {saved ? <Bookmark /> : <BookmarkBorder />}
+        </IconButton>
+      </Tooltip>
+      <Snackbar
+        open={!!notice}
+        autoHideDuration={4000}
+        onClose={() => setNotice(null)}
       >
-        {saved ? <Bookmark /> : <BookmarkBorder />}
-      </IconButton>
-    </Tooltip>
+        <Alert
+          severity={notice?.severity}
+          variant="filled"
+          onClose={() => setNotice(null)}
+        >
+          {notice?.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 }
 export function ListingCard({ listing }: { listing: Listing }) {

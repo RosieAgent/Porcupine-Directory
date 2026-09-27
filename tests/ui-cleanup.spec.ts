@@ -79,6 +79,8 @@ async function fixtures(
         canConfirm: false,
         canReview: false,
         canDelete: !!options.canDelete,
+        isOwner: !!options.signedIn,
+        reasonRequired: false,
       };
     else if (path === "/api/account/saved") data = { ids: [] };
     else if (path === "/api/listings")
@@ -119,8 +121,10 @@ async function fixtures(
 test("permanent deletion requires a clear confirmation", async ({ page }) => {
   await fixtures(page, { signedIn: true, canEdit: true, canDelete: true });
   await page.goto(`/listings/${id}`);
-  await page.getByRole("button", { name: "Delete entry" }).click();
+  await page.getByRole("button", { name: "Entry actions" }).click();
+  await page.getByRole("menuitem", { name: "Delete entry" }).click();
   const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("permanently removes the entry");
   const remove = dialog.getByRole("button", { name: "Delete permanently" });
   await expect(remove).toBeDisabled();
@@ -135,6 +139,20 @@ test("permanent deletion requires a clear confirmation", async ({ page }) => {
   await expect(dialog).toBeHidden();
 });
 
+test("report dialog stays open when launched from entry actions", async ({
+  page,
+}) => {
+  await fixtures(page);
+  await page.goto(`/listings/${id}`);
+  await page.getByRole("button", { name: "Entry actions" }).click();
+  await page.getByRole("menuitem", { name: "Report an issue" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("No account is needed");
+  await dialog.getByRole("button", { name: "Close report dialog" }).click();
+  await expect(dialog).toBeHidden();
+});
+
 for (const width of [1440, 390]) {
   test(`toolbar, source panel and chip spacing at ${width}px`, async ({
     page,
@@ -142,25 +160,21 @@ for (const width of [1440, 390]) {
     await fixtures(page, { signedIn: true, canEdit: true });
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(`/listings/${id}`);
-    const actions = page.getByTestId("page-actions");
+    const entryActions = page.getByRole("button", { name: "Entry actions" });
+    await expect(entryActions).toBeVisible();
+    const actionBox = (await entryActions.boundingBox())!;
+    expect(actionBox.x + actionBox.width).toBeGreaterThan(width - 80);
+    await entryActions.click();
     await expect(
-      actions.getByRole("button", { name: "Copy link" }),
+      page.getByRole("menuitem", { name: "Share Link" }),
     ).toBeVisible();
-    await expect(actions.getByRole("button", { name: /^Save / })).toBeVisible();
     await expect(
-      actions.getByRole("link", { name: "Edit entry" }),
+      page.getByRole("menuitem", { name: "Bookmark" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "Edit entry" }),
     ).toHaveAttribute("href", `/listings/${id}/edit`);
-    await expect(page.getByRole("button", { name: /^Save / })).toHaveCount(1);
-    await expect(page.getByRole("link", { name: "Edit entry" })).toHaveCount(1);
-    const toolbar = (await page.getByTestId("page-toolbar").boundingBox())!;
-    const group = (await actions.boundingBox())!;
-    expect(
-      Math.abs(toolbar.x + toolbar.width - group.x - group.width),
-    ).toBeLessThan(2);
-    const crumb = (await page
-      .getByRole("navigation", { name: "Breadcrumb" })
-      .boundingBox())!;
-    expect(group.x).toBeGreaterThanOrEqual(crumb.x + crumb.width);
+    await page.keyboard.press("Escape");
     const source = page.getByRole("region", { name: "Source information" });
     await expect(
       source.getByRole("link", { name: "Community source" }),
@@ -272,17 +286,17 @@ test("share glyph copies filtered public URLs and the manual fallback never expo
 }) => {
   await fixtures(page);
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto(`/listings/${id}?token=PRIVATE&next=/account#secret`);
-  const copy = page.getByRole("button", { name: "Copy link", exact: true });
+  await page.goto(`/directory?q=cat&token=PRIVATE&next=/account#secret`);
+  const copy = page.getByRole("button", { name: "Share Link", exact: true });
   await expect(copy.locator('[data-share-icon="true"]')).toBeVisible();
   await copy.focus();
-  await expect(page.getByRole("tooltip", { name: "Copy link" })).toBeVisible();
+  await expect(page.getByRole("tooltip", { name: "Share Link" })).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Link copied", { exact: true })).toBeVisible();
   const origin = new URL(page.url()).origin;
   await expect
     .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-    .toBe(`${origin}/listings/${id}`);
+    .toBe(`${origin}/directory?q=cat`);
   await page.goto(
     `/directory?tag=Housing&tags=${id}&pageSize=24&token=PRIVATE#secret`,
   );
@@ -309,7 +323,7 @@ test("share glyph copies filtered public URLs and the manual fallback never expo
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Copy link", exact: true }),
+      page.getByRole("button", { name: "Share Link", exact: true }),
     ).toHaveCount(0);
   }
 });

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Alert,
@@ -6,30 +7,44 @@ import {
   Stack,
   Typography,
   Link as MuiLink,
+  Snackbar,
 } from "@mui/material";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { queries } from "../lib/api";
 import { safeExternalUrl } from "../lib/urls";
 import { accessLabels } from "../../shared/contracts";
-import { ReportIssue } from "../components/ReportIssue";
 import { ErrorState, Loading, Page } from "../components/Page";
-import { IconLink } from "../components/IconAction";
 import { ConnectionLinks } from "../components/ConnectionLinks";
-import { SaveButton } from "../components/ListingCard";
 import { EntryStatus } from "../components/EntryStatus";
 import { TopicTags } from "../components/TopicTags";
 import { confirmationDate } from "../../shared/trust";
 import { useAuth } from "../state/AuthProvider";
 import { request } from "../lib/api";
 import { z } from "zod";
-import EditOutlined from "@mui/icons-material/EditOutlined";
 import { RecentPublications } from "../components/RecentPublications";
-import { OwnershipAssignment } from "../components/OwnershipAssignment";
-import { DeleteListingDialog } from "../components/DeleteListingDialog";
 import { EntryImageGallery } from "../components/EntryImages";
+import { EntryActionsMenu } from "../components/EntryActionsMenu";
 export default function ListingPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  type Notice = {
+    severity: "success" | "warning" | "error";
+    message: string;
+  };
+  const [dismissedNotice, setDismissedNotice] = useState<string | null>(null);
+  const routeNotice = (
+    location.state as { snackbar?: Notice } | null | undefined
+  )?.snackbar;
+  const notice =
+    routeNotice && routeNotice.message !== dismissedNotice ? routeNotice : null;
+  const closeNotice = () => {
+    if (routeNotice) setDismissedNotice(routeNotice.message);
+    navigate(location.pathname + location.search, {
+      replace: true,
+      state: null,
+    });
+  };
   const result = useQuery(queries.listing(id));
   const { user } = useAuth();
   const permissions = useQuery({
@@ -42,6 +57,8 @@ export default function ListingPage() {
           canConfirm: z.boolean(),
           canReview: z.boolean(),
           canDelete: z.boolean(),
+          isOwner: z.boolean(),
+          reasonRequired: z.boolean(),
         }),
       ),
     enabled: !!user,
@@ -59,35 +76,31 @@ export default function ListingPage() {
       title={listing.name}
       description={listing.summary}
       parent={{ label: "Explore", to: "/" }}
-      shareable={listing.status === "published"}
-      actions={
-        <>
-          <SaveButton listing={listing} />
-          <ReportIssue listingId={listing.id} />
-          {user && permissions.data?.canEdit && (
-            <IconLink label="Edit entry" to={`/listings/${id}/edit`}>
-              <EditOutlined />
-            </IconLink>
-          )}
-          {user && permissions.data?.canReview && (
-            <OwnershipAssignment
-              key={`${id}:${user.id}`}
-              listingId={id}
-              version={listing.version}
-            />
-          )}
-          {user && permissions.data?.canDelete && (
-            <DeleteListingDialog
-              listingId={id}
-              listingName={listing.name}
-              onDeleted={() =>
-                navigate(user.role === "user" ? "/account/entries" : "/editor")
-              }
-            />
-          )}
-        </>
-      }
+      shareable={false}
     >
+      <EntryActionsMenu
+        listing={listing}
+        userId={user?.id ?? "anonymous"}
+        mode="view"
+        canEdit={!!permissions.data?.canEdit}
+        canConfirm={false}
+        canReview={!!permissions.data?.canReview}
+        canDelete={!!permissions.data?.canDelete}
+        shareable={listing.status === "published"}
+        permissionsPending={permissions.isPending}
+        onDeleted={() => {
+          const destination =
+            user?.role === "user" ? "/account/entries" : "/editor";
+          navigate(destination, {
+            state: {
+              snackbar: {
+                severity: "success",
+                message: `“${listing.name}” was deleted.`,
+              },
+            },
+          });
+        }}
+      />
       <EntryStatus listing={listing} />
       {listing.lifecycle === "proposed" && (
         <Alert severity="info">
@@ -251,6 +264,15 @@ export default function ListingPage() {
           )}
         </Stack>
       </Paper>
+      <Snackbar open={!!notice} autoHideDuration={6000} onClose={closeNotice}>
+        <Alert
+          severity={notice?.severity}
+          onClose={closeNotice}
+          variant="filled"
+        >
+          {notice?.message}
+        </Alert>
+      </Snackbar>
     </Page>
   );
 }

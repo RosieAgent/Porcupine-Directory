@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Button,
@@ -19,16 +20,30 @@ export function DeleteListingDialog({
   listingId,
   listingName,
   disabled = false,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+  onError,
   onDeleted,
 }: {
   listingId: string;
   listingName: string;
   disabled?: boolean;
+  trigger?: (open: () => void) => ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onError?: (error: Error) => void;
   onDeleted: () => void | Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
+  const client = useQueryClient();
+  const [internalOpen, setInternalOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [reason, setReason] = useState("");
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (nextOpen: boolean) => {
+    if (controlledOpen === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const remove = useMutation({
     mutationFn: () =>
       mutate(
@@ -41,8 +56,12 @@ export function DeleteListingDialog({
       setOpen(false);
       setConfirmation("");
       setReason("");
+      client.removeQueries({ queryKey: ["listing", listingId] });
+      client.removeQueries({ queryKey: ["listings"] });
+      await client.invalidateQueries({ queryKey: ["private", "entries"] });
       await onDeleted();
     },
+    onError,
   });
   const close = () => {
     if (!remove.isPending) {
@@ -52,20 +71,25 @@ export function DeleteListingDialog({
   };
   const ready =
     confirmation.trim() === listingName && reason.trim().length >= 3;
+  const openDialog = () => {
+    remove.reset();
+    setOpen(true);
+  };
   return (
     <>
-      <Button
-        color="error"
-        variant="outlined"
-        startIcon={<DeleteForeverOutlined />}
-        disabled={disabled}
-        onClick={() => {
-          remove.reset();
-          setOpen(true);
-        }}
-      >
-        Delete entry
-      </Button>
+      {trigger ? (
+        trigger(openDialog)
+      ) : (
+        <Button
+          color="error"
+          variant="outlined"
+          startIcon={<DeleteForeverOutlined />}
+          disabled={disabled}
+          onClick={openDialog}
+        >
+          Delete entry
+        </Button>
+      )}
       <Dialog
         open={open}
         onClose={close}
