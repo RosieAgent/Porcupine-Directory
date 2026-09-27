@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
 import CurrencyBitcoin from "@mui/icons-material/CurrencyBitcoin";
 import Bolt from "@mui/icons-material/Bolt";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import AccountBalanceWalletOutlined from "@mui/icons-material/AccountBalanceWalletOutlined";
+import OpenInNew from "@mui/icons-material/OpenInNew";
 import { donationsResponse } from "../../shared/donations";
 import { request } from "../lib/api";
 import { ErrorState, Loading, Page } from "../components/Page";
@@ -63,6 +64,11 @@ export default function DonatePage() {
             ] as const
           ).map(({ key, title, icon, note }) => {
             const destination = result.data[key];
+            const checkoutUrl =
+              key === "bitcoin" ? result.data.bitcoinCheckoutUrl : undefined;
+            const methodNote = checkoutUrl
+              ? "Use our BTCPay checkout to choose an amount and pay with Bitcoin. Review the network and fee details in your wallet before confirming."
+              : note;
             return (
               <Paper
                 key={key}
@@ -80,8 +86,20 @@ export default function DonatePage() {
                     {icon}
                     <Typography variant="h2">{title}</Typography>
                   </Stack>
-                  <Typography variant="body2">{note}</Typography>
-                  {destination ? (
+                  <Typography variant="body2">{methodNote}</Typography>
+                  {checkoutUrl ? (
+                    <Button
+                      component="a"
+                      href={checkoutUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="contained"
+                      startIcon={<OpenInNew />}
+                      sx={{ alignSelf: "flex-start" }}
+                    >
+                      Continue to Bitcoin checkout
+                    </Button>
+                  ) : destination ? (
                     <>
                       <Typography
                         component="code"
@@ -107,7 +125,7 @@ export default function DonatePage() {
                   ) : (
                     <Alert severity="info">
                       {key === "bitcoin"
-                        ? "Bitcoin address: TBD. Payments are disabled."
+                        ? "Bitcoin checkout is not configured yet."
                         : "Not available yet. A receiving address has not been configured."}
                     </Alert>
                   )}
@@ -122,11 +140,12 @@ export default function DonatePage() {
         <Stack spacing={2}>
           <Typography variant="h2">Your privacy</Typography>
           <Typography variant="body2">
-            No account, name, email or donation form is required. This page does
-            not track payments or publish a donor list. Bitcoin transactions are
-            public; a shared receiving address can link donations. Lightning
-            providers and wallets have their own privacy practices. Neither
-            method guarantees anonymity.
+            No directory account, name, email or donor form is required. The
+            directory does not publish a donor list. Bitcoin checkout opens our
+            BTCPay Server, which may retain invoice and payment status. Bitcoin
+            transactions are public; a shared receiving wallet can link
+            donations. Lightning providers and wallets have their own privacy
+            practices. Neither method guarantees anonymity.
           </Typography>
           <Typography variant="body2">
             Always verify the destination, network, amount and fees in your

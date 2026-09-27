@@ -77,7 +77,7 @@ Browser verification uses `/usr/bin/chromium` and the running preview on port 43
 
 ## Current limits
 
-Recent additions: [publications and donations](docs/publications-and-donations.md). Porcupine Report has an hourly public feed cache without external media loading. Lightning wallet handoff is configured; Bitcoin is TBD; Nostr zap receipts remain pending. Publication recency does not change ranking. See the [tag-first/UI queue](docs/tag-first-next-batch.md).
+Recent additions: [publications and donations](docs/publications-and-donations.md). Porcupine Report has an hourly public feed cache without external media loading. `/donate` supports Lightning wallet handoff and a self-hosted BTCPay checkout for on-chain Bitcoin; Nostr zap receipts remain pending. Publication recency does not change ranking. See the [tag-first/UI queue](docs/tag-first-next-batch.md).
 
 This is a local preview, not production. Accounts, recovery phrases, owner editing, bookmarks, editor/admin roles, administrator account management, and audited confirmation/restore are implemented. Staff use approved recent-password verification; passkeys stay hidden. Email recovery delivers only to a local preview inbox. Nostr, scopes, accepted ownership transfers, controlled tag catalog, account export and audit redaction remain queued/future work.
 

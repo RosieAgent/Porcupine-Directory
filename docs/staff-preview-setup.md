@@ -24,7 +24,7 @@ Reference: [Mailpit Docker configuration](https://mailpit.axllent.org/docs/insta
 
 ## Donation configuration
 
-Bitcoin is **TBD**, with no wallet URI or copy action. The user supplied `csmathguy@strike.me` for Lightning. Its public LNURL-pay metadata returned a `payRequest` from Strike during setup; no invoice was requested and no payment made. This verifies endpoint availability, not independent proof of wallet ownership. The app offers direct wallet handoff/copy and does not fetch invoices or publish Nostr zap receipts. A future NIP-57 flow still needs separate recipient-key/receipt-policy implementation.
+On-chain Bitcoin donations use the self-hosted BTCPay checkout at `https://donate.porcupinedirectory.com`, linked from `/donate`. The owner confirmed the public checkout by completing a small test payment from a separate wallet. The directory does not create BTCPay invoices, track payment status or independently verify receipt. The configured Lightning Address still offers wallet handoff/copy and its public LNURL-pay metadata returned a `payRequest` from Strike during setup; that check verifies endpoint availability, not independent proof of wallet ownership. Neither method publishes Nostr zap receipts. A future NIP-57 flow still needs separate recipient-key/receipt-policy implementation.
 
 ## Verification
 

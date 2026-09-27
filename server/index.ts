@@ -31,7 +31,7 @@ import {
 } from "./security.js";
 import { auth } from "./routes/auth.js";
 import { accountRoutes, administration } from "./routes/accounts.js";
-import { donationSettings } from "./donations.js";
+import { bitcoinCheckoutUrl, donationSettings } from "./donations.js";
 import { getPublications, startPublicationScheduler } from "./publications.js";
 import { PORCUPINE_REPORT_ID } from "../shared/publications.js";
 import { createSharePreviewHandler } from "./share-preview.js";
@@ -79,7 +79,12 @@ app.use("/api/ownership", ownership);
 app.use("/api/moderation", moderation);
 app.use("/api/admin/event-sync", eventSyncDiagnostics);
 app.use("/api/events", events);
-app.get("/api/donations", (_req, res) => res.json(donationSettings()));
+app.get("/api/donations", (_req, res) =>
+  res.json({
+    ...donationSettings(),
+    bitcoinCheckoutUrl: bitcoinCheckoutUrl(),
+  }),
+);
 app.get("/api/publications/:id", async (req, res) => {
   if (
     req.params.id !== PORCUPINE_REPORT_ID ||

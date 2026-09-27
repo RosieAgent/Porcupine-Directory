@@ -72,14 +72,16 @@ The production workflow uploads the application release but deliberately does no
 
 | Name                         | GitHub type          | Value                                              |
 | ---------------------------- | -------------------- | -------------------------------------------------- |
+| `DONATION_BTCPAY_URL`        | Environment variable | `https://donate.porcupinedirectory.com`            |
 | `DONATION_LIGHTNING_ADDRESS` | Environment variable | `donate@porcupinedirectory.com`                    |
 | `DONATION_LIGHTNING_NWC_URL` | Environment secret   | Complete restricted Alby Hub NWC connection secret |
 
-The workflow writes those values to `/opt/porcupine-directory/.donation.env` and passes them to Docker Compose at runtime. The NWC secret is not placed in the repository or Docker image. If both values are blank, the donation drop-in is removed and the feature stays disabled.
+The workflow writes those values to `/opt/porcupine-directory/.donation.env` and passes them to Docker Compose at runtime. `DONATION_BTCPAY_URL` is public configuration, not a secret. The NWC secret is not placed in the repository or Docker image. If all three values are blank, the donation drop-in is removed and the checkout links stay disabled.
 
 For an Alby Hub donation sub-wallet, the generated runtime file contains:
 
 ```dotenv
+DONATION_BTCPAY_URL=https://donate.porcupinedirectory.com
 DONATION_LIGHTNING_ADDRESS=donate@porcupinedirectory.com
 DONATION_LIGHTNING_NWC_URL='nostr+walletconnect://...'
 DONATION_LIGHTNING_MIN_MSAT=1000

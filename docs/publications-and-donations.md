@@ -10,23 +10,25 @@ The server checks RSS hourly, with a persisted attempt timestamp and PostgreSQL 
 
 Publication recency is not human confirmation, does not change ranking, and does not grant a trust badge. No listening history or notifications are collected/sent. User bookmarks remain private.
 
-## Activate donations
+## Donation checkout
 
-Route: `/donate`. Bitcoin is TBD with payments disabled. The owner-supplied Lightning Address is configured and its public LNURL-pay metadata was checked. No invoice or payment was created. See [current setup](staff-preview-setup.md).
+Route: `/donate`. On-chain Bitcoin checkout opens the project's self-hosted BTCPay Point of Sale page in a new tab. The link is configured with `DONATION_BTCPAY_URL`; the directory does not embed or contact BTCPay until a visitor chooses checkout. The owner-supplied Lightning Address remains available for Lightning wallet handoff. See [current setup](staff-preview-setup.md).
 
-Set only **public receiving destinations** in this project's ignored `.env`:
+Set only **public receiving destinations and checkout links** in this project's ignored `.env`:
 
 ```dotenv
 DONATION_BITCOIN_ADDRESS=
+DONATION_BTCPAY_URL=https://donate.porcupinedirectory.com
 DONATION_LIGHTNING_ADDRESS=
 ```
 
-- Bitcoin: a mainnet receiving address belonging to the project owner. `bitcoinjs-lib` checks its network/format/checksum before exposure. Wallet handoff uses a [Bitcoin URI](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki), with no preset amount or automatic transfer. No private keys, seeds, signing or custody.
+- BTCPay: a public HTTPS URL for the project's Point of Sale app. The server rejects non-HTTPS, credential-bearing, local and IP-address URLs. The link opens only when the visitor chooses checkout; payment amount and network fees are confirmed in BTCPay and the donor's wallet. BTCPay may retain its own invoice and payment status.
+- Bitcoin address fallback: an optional mainnet receiving address belonging to the project owner. `bitcoinjs-lib` checks its network/format/checksum before exposure. Wallet handoff uses a [Bitcoin URI](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki), with no preset amount or automatic transfer. No private keys, seeds, signing or custody. This fallback is shown only when no BTCPay URL is configured.
 - Lightning: an owner-controlled **Lightning Address**, `name@provider.example`, not an email inbox. The app encodes its HTTPS `.well-known/lnurlp/name` endpoint as LNURL for wallet handoff. It does not fetch the endpoint, generate invoices, process receipts or claim a donation succeeded. Only syntactic validation is automatic; verify the provider supports LNURL-pay and the receiving identity belongs to you before enabling. Raw LNURL strings and expiring invoices are not accepted in this config version.
-- Recreate this project's app container after changing settings. Invalid/blank values remain disabled rather than showing an unsafe payment destination. Never put wallet secrets into these fields, screenshots, Git, tickets or chat.
-- Confirm the displayed address against your wallet on both desktop and mobile, check wallet-handler compatibility, and authorize any real test payment yourself. No real payments were initiated during development.
+- Recreate this project's app container after changing settings. Invalid/blank values remain disabled rather than showing an unsafe payment destination. Never put wallet secrets into these fields, screenshots, Git, tickets or chat. In production, set `DONATION_BTCPAY_URL` as a GitHub `production` environment variable; the deployment workflow includes it in the protected runtime donation file.
+- Confirm the BTCPay link opens the intended Point of Sale app on an external network and authorize any real payment tests yourself. The site owner has manually confirmed a small on-chain test payment; the directory itself does not create invoices, track payments or verify receipt.
 
-No email, donor identity, browser wallet connection or account is required. Bitcoin is public; address reuse can link donations. Wallets/Lightning providers have their own metadata exposure. No anonymity guarantee. No donor leaderboard, analytics or ranking advantage. No tax deductibility claim.
+No directory account, donor identity, browser wallet connection or account is required. Bitcoin is public; address reuse can link donations. BTCPay, wallets and Lightning providers have their own privacy practices. No anonymity guarantee. No donor leaderboard, analytics or ranking advantage. No tax deductibility claim.
 
 ## Self-host the Lightning Address
 

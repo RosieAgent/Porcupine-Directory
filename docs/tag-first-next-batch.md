@@ -10,7 +10,7 @@ Status: the owner authorized improvements 1–6 and 8. Their implementation and 
 4. Migrate to tag-first discovery and forms, keeping existing links, history and permissions intact.
 5. Implement recipient-accepted ownership assignment (PD-04); run preservation and permission tests throughout.
 
-The preceding resource/feed/donation batch is complete. Lightning is configured; Bitcoin remains TBD. Local SMTP preview works; external delivery stays unconfigured. All eight currently linked business websites have a first research pass; five businesses without a website need attributable sources. See [business inventory](research/2026-09-19-businesses.md).
+The preceding resource/feed/donation batch is complete. Lightning wallet handoff is configured, and on-chain Bitcoin checkout is available through the self-hosted BTCPay POS page. The owner completed a small test donation from a separate wallet. Local SMTP preview works; external delivery stays unconfigured. All eight currently linked business websites have a first research pass; five businesses without a website need attributable sources. See [business inventory](research/2026-09-19-businesses.md).
 
 ## Administrator access — priority
 

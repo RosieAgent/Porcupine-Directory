@@ -86,7 +86,7 @@ test("donations work anonymously and fail closed until configured", async ({
     page.getByRole("heading", { name: "Support Porcupine Directory" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Bitcoin address: TBD. Payments are disabled."),
+    page.getByText("Bitcoin checkout is not configured yet."),
   ).toBeVisible();
   await expect(
     page.getByText(

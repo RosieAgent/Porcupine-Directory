@@ -58,3 +58,30 @@ export function donationSettings(
   }
   return result;
 }
+
+export function bitcoinCheckoutUrl(
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const value = env.DONATION_BTCPAY_URL?.trim();
+  if (!value || value.length > 2048) return null;
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+    if (
+      url.protocol !== "https:" ||
+      url.username ||
+      url.password ||
+      !host ||
+      host === "localhost" ||
+      host.endsWith(".local") ||
+      !host.includes(".") ||
+      /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) ||
+      host.startsWith("[")
+    ) {
+      return null;
+    }
+    return url.href;
+  } catch {
+    return null;
+  }
+}
