@@ -33,7 +33,7 @@ import {
   requestActor,
 } from "../security.js";
 
-function validateLocation(value: string, previous = "") {
+export function validateLocation(value: string, previous = "") {
   if (value && !findLocation(value) && value !== normalizeLocation(previous))
     throw new HttpError(
       400,
@@ -191,6 +191,55 @@ export async function insertListingImage(
     serviceAccount: req.serviceAccount?.name,
   });
   return rows[0];
+}
+
+export async function updateListingImageMetadata(
+  client: PoolClient,
+  req: Request,
+  listingId: string,
+  imageId: string,
+  data: z.infer<typeof imagePatchSchema>,
+) {
+  const currentResult = await client.query(
+    `SELECT id,alt_text AS "altText",caption,shareable,is_lead AS "isLead"
+     FROM entry_images WHERE id=$1 AND listing_id=$2 AND deleted_at IS NULL FOR UPDATE`,
+    [imageId, listingId],
+  );
+  const current = currentResult.rows[0];
+  if (!current) throw new HttpError(404, "Image not found.");
+  const nextShareable = data.shareable ?? current.isLead;
+  const nextLead = nextShareable;
+  const nextAltText = data.altText ?? current.altText;
+  if (nextShareable && nextAltText.trim().length < 3)
+    throw new HttpError(
+      400,
+      "Add a short description before using an image as a community card image.",
+    );
+  if (nextLead)
+    await client.query(
+      "UPDATE entry_images SET is_lead=false,shareable=false,updated_at=now() WHERE listing_id=$1 AND deleted_at IS NULL AND id<>$2",
+      [listingId, current.id],
+    );
+  const result = await client.query(
+    `UPDATE entry_images SET alt_text=$2,caption=$3,shareable=$4,is_lead=$5,updated_at=now()
+     WHERE id=$1
+     RETURNING id,alt_text AS "altText",caption,shareable,is_lead AS "isLead",
+       sort_order AS "sortOrder",created_at AS "createdAt"`,
+    [
+      current.id,
+      nextAltText,
+      data.caption ?? current.caption,
+      nextShareable,
+      nextLead,
+    ],
+  );
+  await auditImage(client, req, listingId, "updated", data.reason, {
+    imageId: current.id,
+    changedFields: Object.keys(data).filter((field) => field !== "reason"),
+    communityCard: nextShareable,
+    serviceAccount: req.serviceAccount?.name,
+  });
+  return result.rows[0];
 }
 
 listings.get("/manage", requireUser, async (req, res) => {

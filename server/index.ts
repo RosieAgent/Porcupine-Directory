@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import type { ErrorRequestHandler } from "express";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -41,6 +42,11 @@ import { lightningAddress } from "./lightning-address.js";
 
 export const app = express();
 app.disable("x-powered-by");
+app.use((req, res, next) => {
+  req.requestId = randomUUID();
+  res.set("X-Request-ID", req.requestId);
+  next();
+});
 if (process.env.TRUST_PROXY === "1") app.set("trust proxy", 1);
 app.use(
   helmet({
@@ -156,6 +162,15 @@ const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
   }
   if (error instanceof SyntaxError) {
     res.status(400).json({ error: "Invalid JSON body." });
+    return;
+  }
+  if (
+    error &&
+    typeof error === "object" &&
+    "type" in error &&
+    error.type === "entity.too.large"
+  ) {
+    res.status(413).json({ error: "The request payload is too large." });
     return;
   }
   // Do not log request bodies, credentials, tokens, or SQL parameter values.

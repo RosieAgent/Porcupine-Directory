@@ -1,6 +1,6 @@
 # Application architecture
 
-Accounts use PostgreSQL-backed sessions, Argon2id password/recovery verifiers, SimpleWebAuthn passkeys, and server-side ownership/role authorization. Dedicated routes include `/login`, `/register`, `/recover`, `/account`, `/account/security`, `/account/entries`, `/editor`, `/admin`, `/listings/:id/edit`, and `/listings/:id/history`. Private query keys include account IDs, auth transitions clear private caches, and no auth tokens are persisted in browser storage. See [accounts and trust](accounts-and-trust.md) for the complete policy and operations guide.
+Accounts use PostgreSQL-backed sessions, Argon2id password/recovery verifiers, SimpleWebAuthn passkeys, and server-side ownership/role authorization. Dedicated routes include `/login`, `/register`, `/recover`, `/account`, `/account/security`, `/account/entries`, `/editor`, and `/admin`. Administration has separate workspaces for site activity (`/admin/audit`), people (`/admin/users`), service accounts (`/admin/services`), and source health (`/admin/sources`). Private query keys include account IDs, auth transitions clear private caches, and no auth tokens are persisted in browser storage. See [accounts and trust](accounts-and-trust.md) for the complete policy and operations guide.
 
 ## Navigation and sharing
 

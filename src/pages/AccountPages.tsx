@@ -8,6 +8,14 @@ import {
   Alert,
   Button,
   Checkbox,
+  Card,
+  CardActionArea,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControlLabel,
   MenuItem,
   Pagination,
@@ -44,10 +52,12 @@ import { listingsResponse } from "../../shared/contracts";
 import { StaffVerification } from "../components/StaffVerification";
 import { AdminUsers, type AdminUser } from "../components/AdminUsers";
 import EditOutlined from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
 import { EmailSettings } from "../components/EmailSettings";
 import SendOutlined from "@mui/icons-material/SendOutlined";
 import { AdminAudit } from "../components/AdminAudit";
 import { AdminServiceAccounts } from "../components/AdminServiceAccounts";
+import { AdminWorkspaceNav } from "../components/AdminWorkspaceNav";
 
 export function RecoveryPhrase({
   phrase,
@@ -395,6 +405,36 @@ function SignIn({ mode }: { mode: "login" | "register" | "recover" }) {
     </Page>
   );
 }
+function AccountNavCard({
+  to,
+  title,
+  description,
+}: {
+  to: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        flex: "1 1 220px",
+        minWidth: { xs: "100%", sm: 220 },
+        maxWidth: 380,
+      }}
+    >
+      <CardActionArea component={Link} to={to} sx={{ height: "100%" }}>
+        <CardContent>
+          <Typography variant="h3">{title}</Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {description}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
+}
+
 function AccountHome() {
   const { user, passkeysEnabled } = useAuth();
   return (
@@ -421,38 +461,85 @@ function AccountHome() {
           role. Administrators must use the host console.
         </Alert>
       )}
-      <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
-        <Button component={Link} to="/account/security">
-          Account security
-        </Button>
-        <Button component={Link} to="/account/entries">
-          My entries
-        </Button>
-        <Button component={Link} to="/account/assignments">
-          Ownership invitations
-        </Button>
-        <Button component={Link} to="/saved">
-          Saved entries
-        </Button>
+      <Stack spacing={3}>
+        <Stack spacing={1.5}>
+          <Typography variant="h2">Account tools</Typography>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            useFlexGap
+            sx={{ flexWrap: "wrap" }}
+          >
+            <AccountNavCard
+              to="/account/security"
+              title="Sign-in and recovery"
+              description="Change your password, recovery phrase, passkeys, and email recovery."
+            />
+            <AccountNavCard
+              to="/account/entries"
+              title="My entries"
+              description="View and maintain listings connected to your account."
+            />
+            <AccountNavCard
+              to="/account/assignments"
+              title="Ownership invitations"
+              description="Review requests to take over or transfer an entry."
+            />
+            <AccountNavCard
+              to="/saved"
+              title="Saved entries"
+              description="Return to listings you bookmarked."
+            />
+          </Stack>
+        </Stack>
         {user!.role !== "user" && (
-          <Button component={Link} to="/editor/review">
-            Review queue
-          </Button>
-        )}
-        {user!.role !== "user" && (
-          <Button component={Link} to="/editor/tags">
-            Manage tags
-          </Button>
-        )}
-        {user!.role !== "user" && (
-          <Button component={Link} to="/editor">
-            Editor workspace
-          </Button>
+          <Stack spacing={1.5}>
+            <Typography variant="h2">Directory work</Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              useFlexGap
+              sx={{ flexWrap: "wrap" }}
+            >
+              <AccountNavCard
+                to="/editor/review"
+                title="Review queue"
+                description="Work through submitted changes and reported listings."
+              />
+              <AccountNavCard
+                to="/editor/tags"
+                title="Manage tags"
+                description="Review and maintain the shared directory tag catalog."
+              />
+              <AccountNavCard
+                to="/editor"
+                title="Editor workspace"
+                description="Find and update listings across the directory."
+              />
+            </Stack>
+          </Stack>
         )}
         {user!.role === "administrator" && (
-          <Button component={Link} to="/admin">
-            Administration
-          </Button>
+          <Stack spacing={1.5}>
+            <Typography variant="h2">Site administration</Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              useFlexGap
+              sx={{ flexWrap: "wrap" }}
+            >
+              <AccountNavCard
+                to="/admin/audit"
+                title="Site activity"
+                description="See recent listing changes, image uploads, account actions, and agent activity."
+              />
+              <AccountNavCard
+                to="/admin"
+                title="Administration"
+                description="Manage people, service accounts, and source health."
+              />
+            </Stack>
+          </Stack>
         )}
       </Stack>
     </Page>
@@ -698,9 +785,11 @@ function Entries({ all }: { all: boolean }) {
   );
 }
 function Administration() {
+  const { pathname } = useLocation();
   const { user, passkeysEnabled, staffAuthMode } = useAuth();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string>();
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [username, setUsername] = useState("");
   const [alias, setAlias] = useState("");
   const [role, setRole] = useState<"user" | "editor">("user");
@@ -746,6 +835,7 @@ function Administration() {
       return mutate("/admin/users/" + accountId, okSchema, {}, "DELETE");
     },
     onSuccess: async (_, accountId) => {
+      setDeleteTarget(null);
       await queryClient.invalidateQueries({
         queryKey: ["private", "admin-users"],
       });
@@ -778,9 +868,52 @@ function Administration() {
   const selected = lookup.data;
   const editingOwnAccount = selected?.id === user?.id;
   const administratorSelected = selected?.role === "administrator";
+  if (pathname === "/admin")
+    return (
+      <Page
+        title="Administration"
+        account
+        description="Choose a focused admin workspace. Start with Site activity to review new public content and recent changes."
+      >
+        <AdminWorkspaceNav active="/admin" />
+        <StaffVerification />
+        <Alert severity="info">
+          Published submissions can appear immediately. Check new listings and
+          image uploads regularly while the site has no approval step.
+        </Alert>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          useFlexGap
+          sx={{ flexWrap: "wrap" }}
+        >
+          <AccountNavCard
+            to="/admin/audit"
+            title="Site activity"
+            description="Recent listings, images, account actions, sign-ins, and service activity, with filters and direct listing links."
+          />
+          <AccountNavCard
+            to="/admin/users"
+            title="People and permissions"
+            description="Find accounts, edit account details, and grant or remove monitor access."
+          />
+          <AccountNavCard
+            to="/admin/services"
+            title="Service accounts"
+            description="Issue environment-bound agent tokens with separate read, create, and edit permissions."
+          />
+          <AccountNavCard
+            to="/admin/sources"
+            title="Source health"
+            description="Check calendar import freshness, skipped events, and sync diagnostics."
+          />
+        </Stack>
+      </Page>
+    );
   return (
     <Page
-      title="Administration"
+      title="People and permissions"
+      parent={{ label: "Administration", to: "/admin" }}
       account
       description={
         staffAuthMode === "passkey" && passkeysEnabled
@@ -788,6 +921,7 @@ function Administration() {
           : "Manage private accounts and assign global monitor access. Recipients must save their recovery phrase first."
       }
     >
+      <AdminWorkspaceNav active="/admin/users" />
       <StaffVerification />
       <AdminUsers
         selectedId={selectedId}
@@ -802,12 +936,8 @@ function Administration() {
           lookup.mutate(account.username);
         }}
         onDelete={(account) => {
-          if (
-            window.confirm(
-              `Delete ${account.username}? This permanently removes the account and its saved data.`,
-            )
-          )
-            remove.mutate(account.id);
+          remove.reset();
+          setDeleteTarget(account);
         }}
         onToggleMonitor={(account) => {
           const action = account.role === "editor" ? "Remove" : "Make";
@@ -910,11 +1040,18 @@ function Administration() {
               )}
             </>
           )}
-          {(lookup.error || edit.error || remove.error || monitor.error) && (
+          {(lookup.error ||
+            edit.error ||
+            (remove.error && !deleteTarget) ||
+            monitor.error) && (
             <Alert severity="error">
               {
-                (lookup.error || edit.error || remove.error || monitor.error)
-                  ?.message
+                (
+                  lookup.error ||
+                  edit.error ||
+                  (!deleteTarget && remove.error) ||
+                  monitor.error
+                )?.message
               }
             </Alert>
           )}
@@ -931,11 +1068,77 @@ function Administration() {
           )}
         </Stack>
       </Paper>
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => !remove.isPending && setDeleteTarget(null)}
+        aria-labelledby="delete-user-title"
+        aria-describedby="delete-user-description"
+        role="alertdialog"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="delete-user-title">
+          Delete {deleteTarget?.username}?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-user-description">
+            This permanently removes the account and its saved data. This action
+            cannot be undone.
+          </DialogContentText>
+          {remove.error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {remove.error.message}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteTarget(null)}
+            disabled={remove.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            startIcon={<DeleteOutlineOutlined />}
+            disabled={!deleteTarget || remove.isPending}
+            onClick={() => deleteTarget && remove.mutate(deleteTarget.id)}
+          >
+            Delete account
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Page>
+  );
+}
+
+function AdminServicesPage() {
+  return (
+    <Page
+      title="Service accounts"
+      parent={{ label: "Administration", to: "/admin" }}
+      account
+      description="Issue and monitor scoped API tokens for trusted automation and AI agents."
+    >
+      <AdminWorkspaceNav active="/admin/services" />
+      <StaffVerification />
       <AdminServiceAccounts />
+    </Page>
+  );
+}
+
+function AdminSourcesPage() {
+  return (
+    <Page
+      title="Source health"
+      parent={{ label: "Administration", to: "/admin" }}
+      account
+      description="Review the latest imported calendar snapshot and any skipped source events."
+    >
+      <AdminWorkspaceNav active="/admin/sources" />
+      <StaffVerification />
       <EventSyncDiagnostics />
-      <Button component={Link} to="/admin/audit">
-        Audit log and listing restore
-      </Button>
     </Page>
   );
 }
@@ -971,21 +1174,23 @@ export default function AccountPages() {
   if (pathname === "/account/security") return <Security />;
   if (pathname === "/account/entries" || pathname === "/editor")
     return <Entries all={pathname === "/editor"} />;
-  if (pathname === "/admin")
-    return user.role === "administrator" ? (
-      <Administration />
-    ) : (
-      <Page title="Administrator access required">
-        <Typography>This page is restricted to administrators.</Typography>
+  if (pathname.startsWith("/admin")) {
+    if (user.role !== "administrator")
+      return (
+        <Page title="Administrator access required">
+          <Typography>This page is restricted to administrators.</Typography>
+        </Page>
+      );
+    if (pathname === "/admin/audit") return <AdminAudit />;
+    if (pathname === "/admin/services") return <AdminServicesPage />;
+    if (pathname === "/admin/sources") return <AdminSourcesPage />;
+    if (pathname === "/admin" || pathname === "/admin/users")
+      return <Administration />;
+    return (
+      <Page title="Administration page not found">
+        <Typography>Choose a page from the administration overview.</Typography>
       </Page>
     );
-  if (pathname === "/admin/audit")
-    return user.role === "administrator" ? (
-      <AdminAudit />
-    ) : (
-      <Page title="Administrator access required">
-        <Typography>This page is restricted to administrators.</Typography>
-      </Page>
-    );
+  }
   return <AccountHome />;
 }

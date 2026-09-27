@@ -156,6 +156,28 @@ export const serviceListingPatchSchema = z.object({
   reason: z.string().trim().min(3).max(500),
   context: auditContextSchema.optional(),
 });
+export const serviceListingCreateSchema = submissionSchema
+  .extend({
+    referenceSources: z.array(referenceSourceSchema).max(20).optional(),
+    reason: z.string().trim().min(3).max(500),
+    context: auditContextSchema.optional(),
+  })
+  .strict();
+export const serviceListingImagePatchSchema = z
+  .object({
+    altText: z.string().trim().max(200).optional(),
+    caption: z.string().trim().max(300).optional(),
+    shareable: z.boolean().optional(),
+    reason: z.string().trim().min(3).max(500),
+  })
+  .strict()
+  .refine(
+    (changes) =>
+      ["altText", "caption", "shareable"].some((field) =>
+        Object.prototype.hasOwnProperty.call(changes, field),
+      ),
+    { message: "Supply at least one image field to change." },
+  );
 export const listingSchema = z.object({
   ...entryContextSchema.shape,
   missingJoiningDetails: z.boolean(),

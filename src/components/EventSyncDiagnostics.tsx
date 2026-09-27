@@ -4,6 +4,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  Chip,
   Paper,
   Stack,
   Typography,
@@ -54,48 +55,79 @@ export function EventSyncDiagnostics() {
             >
               <Refresh />
             </IconAction>
-            {result.data.sources.map((source) => (
-              <Accordion key={source.sourceKey}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  {source.sourceKey}: {source.status} · {source.skippedCount}{" "}
-                  skipped
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Stack spacing={1}>
-                    <Typography variant="body2">
-                      Diagnostics from last successful snapshot:{" "}
-                      {source.diagnosticsAt
-                        ? new Date(source.diagnosticsAt).toLocaleString()
-                        : "Not checked"}
-                      . Last attempt:{" "}
-                      {source.lastCheckedAt
-                        ? new Date(source.lastCheckedAt).toLocaleString()
-                        : "Not checked"}
-                      .
-                    </Typography>
-                    <Typography variant="body2">
-                      Malformed recurrence rules are not guessed. Check these
-                      source event IDs with FSP before correcting their meaning.
-                      A failed check retains the previous snapshot.
-                    </Typography>
-                    {source.skipped.map((item, index) => (
-                      <Typography
-                        key={`${item.sourceEventId}-${index}`}
-                        variant="body2"
-                      >
-                        Event {item.sourceEventId}: {item.reason} ({item.code})
+            {!result.data.sources.length ? (
+              <Alert severity="info">
+                No event sources have reported a sync yet.
+              </Alert>
+            ) : (
+              result.data.sources.map((source) => (
+                <Accordion key={source.sourceKey}>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1}
+                      useFlexGap
+                      sx={{ alignItems: { sm: "center" }, minWidth: 0 }}
+                    >
+                      <Typography sx={{ overflowWrap: "anywhere" }}>
+                        {source.sourceKey}
                       </Typography>
-                    ))}
-                    {!source.skipped.length && source.skippedCount > 0 && (
-                      <Alert severity="info">
-                        Detailed reasons will be available after the next
-                        successful poll.
-                      </Alert>
-                    )}
-                  </Stack>
-                </AccordionDetails>
-              </Accordion>
-            ))}
+                      <Chip
+                        size="small"
+                        color={
+                          source.status === "ok"
+                            ? "success"
+                            : source.status === "partial"
+                              ? "warning"
+                              : source.status === "error"
+                                ? "error"
+                                : "default"
+                        }
+                        label={source.status.replaceAll("_", " ")}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {source.skippedCount} skipped
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack spacing={1}>
+                      <Typography variant="body2">
+                        Diagnostics from last successful snapshot:{" "}
+                        {source.diagnosticsAt
+                          ? new Date(source.diagnosticsAt).toLocaleString()
+                          : "Not checked"}
+                        . Last attempt:{" "}
+                        {source.lastCheckedAt
+                          ? new Date(source.lastCheckedAt).toLocaleString()
+                          : "Not checked"}
+                        .
+                      </Typography>
+                      <Typography variant="body2">
+                        Malformed recurrence rules are not guessed. Check these
+                        source event IDs with FSP before correcting their
+                        meaning. A failed check retains the previous snapshot.
+                      </Typography>
+                      {source.skipped.map((item, index) => (
+                        <Typography
+                          key={`${item.sourceEventId}-${index}`}
+                          variant="body2"
+                        >
+                          Event {item.sourceEventId}: {item.reason} ({item.code}
+                          )
+                        </Typography>
+                      ))}
+                      {!source.skipped.length && source.skippedCount > 0 && (
+                        <Alert severity="info">
+                          Detailed reasons will be available after the next
+                          successful poll.
+                        </Alert>
+                      )}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              ))
+            )}
           </>
         )}
       </Stack>
