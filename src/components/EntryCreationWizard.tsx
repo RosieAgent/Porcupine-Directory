@@ -41,6 +41,7 @@ import {
   normalizeWebUrl,
   type ConnectionType,
 } from "../../shared/connections";
+import { ImageDraftPicker, type PendingImage } from "./EntryImages";
 
 type EntryIntent = "existing" | "proposed";
 type EntryFocus = "business" | "organization" | "community" | "resource";
@@ -104,11 +105,13 @@ export function EntryCreationWizard({
   pending,
   error,
   disabled = false,
+  canUploadImages = false,
 }: {
-  onSave: (data: Submission) => void;
+  onSave: (data: Submission, images: PendingImage[]) => void;
   pending: boolean;
   error: Error | null;
   disabled?: boolean;
+  canUploadImages?: boolean;
 }) {
   const catalog = useQuery(queries.tags);
   const {
@@ -138,6 +141,7 @@ export function EntryCreationWizard({
     useState<ConnectionType>("website");
   const [step, setStep] = useState(0);
   const [choiceError, setChoiceError] = useState("");
+  const [images, setImages] = useState<PendingImage[]>([]);
 
   const steps = [
     "Start",
@@ -235,7 +239,7 @@ export function EntryCreationWizard({
       component="form"
       variant="outlined"
       sx={{ p: { xs: 2, md: 3 }, maxWidth: 800 }}
-      onSubmit={handleSubmit((data) => onSave(data))}
+      onSubmit={handleSubmit((data) => onSave(data, images))}
       noValidate
     >
       <Stack spacing={3}>
@@ -688,6 +692,9 @@ export function EntryCreationWizard({
               submitting anonymously, save the public link after publishing;
               creating an account later will not automatically claim it.
             </Typography>
+            {canUploadImages && (
+              <ImageDraftPicker images={images} onChange={setImages} />
+            )}
           </Stack>
         )}
 

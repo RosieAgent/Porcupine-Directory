@@ -19,6 +19,7 @@ import { EntryStatus } from "./EntryStatus";
 import { ConnectionLinks } from "./ConnectionLinks";
 import { TopicTags } from "./TopicTags";
 import { AccessBadge } from "./AccessBadge";
+import { CardImage } from "./EntryImages";
 
 export function SaveButton({ listing }: { listing: Listing }) {
   const { ids, toggle, busy } = useSaved();
@@ -45,6 +46,10 @@ export function ListingCard({ listing }: { listing: Listing }) {
       sx={{ display: "flex", flexDirection: "column", height: "100%" }}
     >
       <CardContent sx={{ flex: 1 }}>
+        <CardImage
+          image={listing.images.find((image) => image.isLead)}
+          alt={`${listing.name} community card image`}
+        />
         <Stack
           direction="row"
           sx={{ mb: 1, justifyContent: "space-between", alignItems: "center" }}

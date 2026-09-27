@@ -47,7 +47,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         "style-src": ["'self'", "'unsafe-inline'"],
-        "img-src": ["'self'", "data:"],
+        "img-src": ["'self'", "data:", "blob:"],
         "upgrade-insecure-requests": null,
       },
     },

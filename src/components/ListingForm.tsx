@@ -39,14 +39,16 @@ import {
   normalizeWebUrl,
 } from "../../shared/connections";
 import { EntryCreationWizard } from "./EntryCreationWizard";
+import type { PendingImage } from "./EntryImages";
 import { TagSuggestionDialog } from "./TagSuggestionDialog";
 
 type ListingFormProps = {
   initial?: Submission;
-  onSave: (data: Submission) => void;
+  onSave: (data: Submission, images?: PendingImage[]) => void;
   pending: boolean;
   error: Error | null;
   disabled?: boolean;
+  canUploadImages?: boolean;
   reason?: string;
   onReasonChange?: (reason: string) => void;
 };
@@ -454,6 +456,7 @@ function DetailedListingForm({
         </Accordion>
         {onReasonChange && (
           <TextField
+            id="reason-for-change"
             label="Reason for change"
             required
             value={reason}
@@ -485,6 +488,7 @@ export function ListingForm(props: ListingFormProps) {
         pending={props.pending}
         error={props.error}
         disabled={props.disabled}
+        canUploadImages={props.canUploadImages}
       />
     );
   return <DetailedListingForm {...props} />;

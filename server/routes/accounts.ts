@@ -424,14 +424,16 @@ administration.get("/audit/listings", async (req, res) => {
     .default(1)
     .parse(req.query.page);
   const { rows } = await pool.query(
-    `SELECT r.listing_id AS "listingId",l.name,r.version,r.action,r.reason,r.details,
+    `SELECT r.listing_id AS "listingId",
+      COALESCE(l.name,r.after_data->>'name',r.before_data->>'name','Deleted entry') AS name,
+      r.version,r.action,r.reason,r.details,
       r.actor_id AS "actorId",r.actor_type AS "actorType",r.request_id AS "requestId",
       (r.before_data-'owner_id') AS before,(r.after_data-'owner_id') AS after,
-      (to_jsonb(l)-'search_vector'-'owner_id') AS current,
+      CASE WHEN l.id IS NULL THEN NULL ELSE (to_jsonb(l)-'search_vector'-'owner_id') END AS current,
       r.created_at AS "createdAt",
       l.version AS "currentVersion",COALESCE(a.username,sa.name) AS "actorName"
      FROM listing_revisions r
-     JOIN listings l ON l.id=r.listing_id
+     LEFT JOIN listings l ON l.id=r.listing_id
      LEFT JOIN accounts a ON r.actor_type='account' AND a.id=r.actor_id
      LEFT JOIN service_accounts sa ON r.actor_type='service_account' AND sa.id=r.actor_id
      ORDER BY r.created_at DESC,r.listing_id,r.version DESC

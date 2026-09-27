@@ -26,6 +26,7 @@ import EditOutlined from "@mui/icons-material/EditOutlined";
 import { RecentPublications } from "../components/RecentPublications";
 import { OwnershipAssignment } from "../components/OwnershipAssignment";
 import { DeleteListingDialog } from "../components/DeleteListingDialog";
+import { EntryImageGallery } from "../components/EntryImages";
 export default function ListingPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -130,6 +131,7 @@ export default function ListingPage() {
           </Typography>
         </Paper>
       )}
+      <EntryImageGallery images={listing.images} title={listing.name} />
       <Paper variant="outlined" sx={{ p: 3 }}>
         <Typography variant="h2" sx={{ mb: 2 }}>
           {listing.accessMode === "invite_only" ||

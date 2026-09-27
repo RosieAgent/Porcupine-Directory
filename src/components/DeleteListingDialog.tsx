@@ -80,8 +80,8 @@ export function DeleteListingDialog({
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Alert severity="warning">
               This permanently removes the entry from the directory, along with
-              its revision history, ownership assignments, moderation records,
-              and saved copies. It cannot be undone from the application.
+              its images and saved copies. It cannot be undone from the
+              application. Private audit records are retained.
             </Alert>
             <Typography variant="body2">
               If you only want to take it out of public browsing, cancel this

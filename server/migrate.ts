@@ -26,6 +26,10 @@ export async function migrate() {
     "019_reference_source_updates.sql",
     "020_saved_tags.sql",
     "021_tag_suggestions.sql",
+    "022_entry_images.sql",
+    "023_community_card_images.sql",
+    "024_listing_submission_idempotency.sql",
+    "025_preserve_listing_audit_on_delete.sql",
   ];
   const client = await pool.connect();
   try {

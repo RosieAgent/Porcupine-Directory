@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { OwnershipAssignment } from "../components/OwnershipAssignment";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -25,6 +25,10 @@ import { useAuth } from "../state/AuthProvider";
 import { Page, Loading, ErrorState } from "../components/Page";
 import { ListingForm } from "../components/ListingForm";
 import { DeleteListingDialog } from "../components/DeleteListingDialog";
+import {
+  ListingImagesEditor,
+  type ListingImagesEditorHandle,
+} from "../components/EntryImages";
 export default function EditListingPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -32,6 +36,7 @@ export default function EditListingPage() {
   const client = useQueryClient();
   const [reason, setReason] = useState("");
   const [attest, setAttest] = useState(false);
+  const imageEditorRef = useRef<ListingImagesEditorHandle>(null);
   const entry = useQuery({
     queryKey: ["private", "edit", id, user?.id],
     queryFn: () => request(`/listings/${id}/edit`, listingSchema),
@@ -52,13 +57,20 @@ export default function EditListingPage() {
     enabled: !!user,
   });
   const update = useMutation({
-    mutationFn: (data: Submission) =>
-      mutate(
+    mutationFn: async (data: Submission) => {
+      await mutate(
         `/listings/${id}`,
         okSchema,
         { entry: data, version: entry.data!.version, reason },
         "PUT",
-      ),
+      );
+      try {
+        await imageEditorRef.current?.savePending();
+      } catch (error) {
+        await client.invalidateQueries({ queryKey: ["private", "edit", id] });
+        throw error;
+      }
+    },
     onSuccess: async () => {
       setAttest(false);
       await client.invalidateQueries();
@@ -276,6 +288,16 @@ export default function EditListingPage() {
           badges.
         </Alert>
       )}
+      <ListingImagesEditor
+        ref={imageEditorRef}
+        listingId={id}
+        images={listing.images}
+        reason={reason}
+        onChanged={async () => {
+          await client.invalidateQueries({ queryKey: ["private", "edit", id] });
+          await client.invalidateQueries({ queryKey: ["listing", id] });
+        }}
+      />
       <ListingForm
         key={listing.version}
         initial={{

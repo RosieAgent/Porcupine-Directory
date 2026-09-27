@@ -1,9 +1,17 @@
 import { createHash } from "node:crypto";
+import express from "express";
 import { Router } from "express";
 import { z } from "zod";
 import { serviceListingPatchSchema } from "../../shared/contracts.js";
 import { pool } from "../db.js";
-import { applyServiceListingPatch, publicListingColumns } from "./listings.js";
+import {
+  applyServiceListingPatch,
+  imageData,
+  imageMetadataSchema,
+  imageUrl,
+  insertListingImage,
+  publicListingColumns,
+} from "./listings.js";
 import {
   authenticateServiceToken,
   requireServiceScope,
@@ -78,5 +86,89 @@ serviceListings.patch(
       return result;
     });
     res.json(response);
+  },
+);
+
+serviceListings.post(
+  "/listings/:id/images",
+  requireServiceScope("listings:write"),
+  express.raw({
+    type: ["image/jpeg", "image/png", "image/webp"],
+    limit: "5mb",
+  }),
+  async (req, res) => {
+    const id = z.uuid().parse(req.params.id);
+    const idempotencyKey = z
+      .string()
+      .trim()
+      .min(8)
+      .max(200)
+      .parse(req.get("idempotency-key"));
+    const mimeType = req.get("content-type")?.split(";", 1)[0] ?? "";
+    const data = imageData(
+      Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
+      mimeType,
+    );
+    const metadata = imageMetadataSchema.parse({
+      altText: req.get("x-image-alt") ?? "",
+      caption: req.get("x-image-caption") ?? "",
+      shareable: req.get("x-image-shareable") === "true",
+      reason: req.get("x-image-reason") ?? "",
+    });
+    if (metadata.shareable && metadata.altText.length < 3)
+      throw new HttpError(
+        400,
+        "Add a short description before using an image as a community card image.",
+      );
+    const requestHash = createHash("sha256")
+      .update(data)
+      .update(JSON.stringify({ id, mimeType, metadata }))
+      .digest("hex");
+    const response = await transaction(async (client) => {
+      const inserted = await client.query(
+        `INSERT INTO service_request_dedup(service_account_id,idempotency_key,request_hash)
+         VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING idempotency_key`,
+        [req.serviceAccount!.id, idempotencyKey, requestHash],
+      );
+      if (!inserted.rowCount) {
+        const existing = await client.query(
+          `SELECT request_hash,response FROM service_request_dedup
+           WHERE service_account_id=$1 AND idempotency_key=$2 FOR UPDATE`,
+          [req.serviceAccount!.id, idempotencyKey],
+        );
+        if (existing.rows[0]?.request_hash !== requestHash)
+          throw new HttpError(
+            409,
+            "That idempotency key was already used for a different request.",
+          );
+        if (existing.rows[0]?.response) return existing.rows[0].response;
+        throw new HttpError(409, "That request is already being processed.");
+      }
+      const listing = await client.query(
+        "SELECT id FROM listings WHERE id=$1 FOR UPDATE",
+        [id],
+      );
+      if (!listing.rows[0]) throw new HttpError(404, "Entry not found.");
+      const image = await insertListingImage(
+        client,
+        req,
+        id,
+        data,
+        mimeType,
+        metadata,
+      );
+      const result = {
+        ...image,
+        url: imageUrl(String(id), image.id),
+        requestId: req.requestId,
+      };
+      await client.query(
+        `UPDATE service_request_dedup SET response=$3::jsonb
+         WHERE service_account_id=$1 AND idempotency_key=$2`,
+        [req.serviceAccount!.id, idempotencyKey, JSON.stringify(result)],
+      );
+      return result;
+    });
+    res.status(201).json(response);
   },
 );

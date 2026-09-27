@@ -86,6 +86,17 @@ export const submissionSchema = z.object({
   accessInstructions: z.string().trim().max(1000).default(""),
 });
 export type Submission = z.infer<typeof submissionSchema>;
+export const entryImageSchema = z.object({
+  id: z.uuid(),
+  url: z.string().startsWith("/api/listings/"),
+  altText: z.string(),
+  caption: z.string(),
+  shareable: z.boolean(),
+  isLead: z.boolean(),
+  sortOrder: z.number().int().nonnegative(),
+  createdAt: z.string(),
+});
+export type EntryImage = z.infer<typeof entryImageSchema>;
 export const referenceSourceSchema = z.object({
   label: z.string().trim().min(1).max(160),
   url: webUrl,
@@ -170,6 +181,7 @@ export const listingSchema = z.object({
   status: z.enum(["published", "pending_review", "archived"]),
   selfConfirmedAt: z.string().nullable(),
   editorReviewedAt: z.string().nullable(),
+  images: z.array(entryImageSchema).default([]),
 });
 export type Listing = z.infer<typeof listingSchema>;
 export const eventSchema = z.object({

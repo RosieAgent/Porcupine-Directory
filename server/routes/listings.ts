@@ -1,4 +1,5 @@
-import { Router } from "express";
+import { createHash } from "node:crypto";
+import express, { Router } from "express";
 import { z } from "zod";
 import {
   listingQuerySchema,
@@ -29,6 +30,7 @@ import {
   requireCurrentSession,
   setAuditContext,
   audit,
+  requestActor,
 } from "../security.js";
 
 function validateLocation(value: string, previous = "") {
@@ -45,7 +47,140 @@ export const publicListingColumns = `id, kind, name, summary, description, url, 
   source_url AS "sourceUrl", last_confirmed_at AS "lastConfirmedAt", imported_at AS "importedAt", links,
   version,status,connections,self_confirmed_at AS "selfConfirmedAt",editor_reviewed_at AS "editorReviewedAt",
   lifecycle,seeking_organizer AS "seekingOrganizer",public_phone AS "publicPhone",public_email AS "publicEmail",public_address AS "publicAddress",opening_hours AS "openingHours",reference_sources AS "referenceSources",
-  NOT listing_has_joining_details(connections,access_instructions,public_phone,public_email) AS "missingJoiningDetails"`;
+  NOT listing_has_joining_details(connections,access_instructions,public_phone,public_email) AS "missingJoiningDetails",
+  COALESCE((SELECT jsonb_agg(jsonb_build_object(
+    'id', image.id,
+    'url', '/api/listings/' || listings.id || '/images/' || image.id,
+    'altText', image.alt_text,
+    'caption', image.caption,
+    'shareable', image.shareable,
+    'isLead', image.is_lead,
+    'sortOrder', image.sort_order,
+    'createdAt', image.created_at
+  ) ORDER BY image.is_lead DESC, image.sort_order, image.created_at, image.id)
+  FROM entry_images image
+  WHERE image.listing_id=listings.id AND image.deleted_at IS NULL), '[]'::jsonb) AS images`;
+
+const privateImageColumns = `id,
+  '/api/listings/' || listing_id || '/images/' || id AS url,
+  alt_text AS "altText", caption, shareable, is_lead AS "isLead",
+  sort_order AS "sortOrder", created_at AS "createdAt"`;
+
+export const imageMetadataSchema = z.object({
+  altText: z.string().trim().max(200).default(""),
+  caption: z.string().trim().max(300).default(""),
+  shareable: z.boolean().default(false),
+  reason: z.string().trim().min(3).max(500),
+});
+const imagePatchSchema = imageMetadataSchema.partial().extend({
+  reason: z.string().trim().min(3).max(500),
+});
+
+export function imageUrl(id: string, imageId: string) {
+  return `/api/listings/${id}/images/${imageId}`;
+}
+
+export function imageData(buffer: Buffer, mimeType: string) {
+  const jpeg =
+    buffer.length >= 3 &&
+    buffer.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]));
+  const png =
+    buffer.length >= 8 &&
+    buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const webp =
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString() === "RIFF" &&
+    buffer.subarray(8, 12).toString() === "WEBP";
+  if (
+    (mimeType === "image/jpeg" && jpeg) ||
+    (mimeType === "image/png" && png) ||
+    (mimeType === "image/webp" && webp)
+  )
+    return buffer;
+  throw new HttpError(400, "The image file type could not be verified.");
+}
+
+async function authorizedImageListing(client: PoolClient, req: Request) {
+  const id = z.uuid().parse(req.params.id);
+  const { rows } = await client.query(
+    "SELECT id,owner_id,status FROM listings WHERE id=$1 FOR UPDATE",
+    [id],
+  );
+  const listing = rows[0];
+  if (!listing) throw new HttpError(404, "Entry not found.");
+  if (listing.owner_id !== req.account!.id) assertStaff(req);
+  return listing;
+}
+
+async function auditImage(
+  client: PoolClient,
+  req: Request,
+  listingId: string,
+  action: string,
+  reason: string,
+  details: Record<string, unknown>,
+) {
+  await context(client, req, `image-${action}`, reason);
+  const actor = requestActor(req);
+  await audit(client, actor.id ?? null, listingId, `listing.image.${action}`, {
+    actorType: actor.type,
+    subjectType: "listing",
+    requestId: req.requestId,
+    reason,
+    details,
+  });
+}
+
+export async function insertListingImage(
+  client: PoolClient,
+  req: Request,
+  listingId: string,
+  data: Buffer,
+  mimeType: string,
+  metadata: z.infer<typeof imageMetadataSchema>,
+) {
+  const count = await client.query(
+    "SELECT count(*)::int AS total FROM entry_images WHERE listing_id=$1 AND deleted_at IS NULL",
+    [listingId],
+  );
+  if (count.rows[0].total >= 12)
+    throw new HttpError(400, "An entry can have up to 12 active images.");
+  if (metadata.shareable)
+    await client.query(
+      "UPDATE entry_images SET is_lead=false,shareable=false,updated_at=now() WHERE listing_id=$1 AND deleted_at IS NULL",
+      [listingId],
+    );
+  const { rows } = await client.query(
+    `INSERT INTO entry_images
+      (listing_id,data,mime_type,byte_size,alt_text,caption,shareable,is_lead,sort_order,uploaded_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,
+       COALESCE((SELECT max(sort_order)+1 FROM entry_images WHERE listing_id=$1 AND deleted_at IS NULL),0),$9)
+     RETURNING id,alt_text AS "altText",caption,shareable,is_lead AS "isLead",
+       sort_order AS "sortOrder",created_at AS "createdAt"`,
+    [
+      listingId,
+      data,
+      mimeType,
+      data.length,
+      metadata.altText,
+      metadata.caption,
+      metadata.shareable,
+      metadata.shareable,
+      req.account?.id ?? null,
+    ],
+  );
+  await auditImage(client, req, listingId, "uploaded", metadata.reason, {
+    imageId: rows[0].id,
+    bytes: data.length,
+    mimeType,
+    shareable: metadata.shareable,
+    communityCard: metadata.shareable,
+    serviceAccount: req.serviceAccount?.name,
+  });
+  return rows[0];
+}
 
 listings.get("/manage", requireUser, async (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -94,6 +229,15 @@ listings.get("/:id/edit", requireUser, async (req, res) => {
   if (!rows[0]) throw new HttpError(404, "Entry not found.");
   if (rows[0].owner_id !== req.account!.id) assertStaff(req);
   const entry = { ...rows[0] };
+  const images = await pool.query(
+    `SELECT ${privateImageColumns} FROM entry_images WHERE listing_id=$1 AND deleted_at IS NULL
+     ORDER BY is_lead DESC,sort_order,created_at,id`,
+    [rows[0].id],
+  );
+  entry.images = images.rows.map((image) => ({
+    ...image,
+    url: imageUrl(rows[0].id, image.id),
+  }));
   delete entry.owner_id;
   res.json(entry);
 });
@@ -364,28 +508,10 @@ listings.delete("/:id", requireUser, async (req, res) => {
       details,
     });
 
-    // Preserve the deletion audit record while removing the listing and its
-    // private child records. The audit snapshot gives administrators a record
-    // of what was removed without leaving the entry publicly recoverable.
-    await client.query(
-      `DELETE FROM moderation_report_audit
-       WHERE report_id IN (SELECT id FROM moderation_reports WHERE listing_id=$1)`,
-      [entry.id],
-    );
-    await client.query("DELETE FROM moderation_reports WHERE listing_id=$1", [
-      entry.id,
-    ]);
-    await client.query(
-      `DELETE FROM ownership_audit
-       WHERE transfer_id IN (SELECT id FROM ownership_transfers WHERE listing_id=$1)`,
-      [entry.id],
-    );
-    await client.query("DELETE FROM ownership_transfers WHERE listing_id=$1", [
-      entry.id,
-    ]);
-    await client.query("DELETE FROM listing_revisions WHERE listing_id=$1", [
-      entry.id,
-    ]);
+    // Revision, ownership, and moderation rows are immutable audit history.
+    // Migration 025 removes only the foreign-key blockers so these records can
+    // retain the deleted listing UUID without allowing the listing to survive.
+    // Bookmarks and entry images use ON DELETE CASCADE and are removed with it.
     await client.query("DELETE FROM listings WHERE id=$1", [entry.id]);
   });
   res.json({ ok: true });
@@ -462,6 +588,147 @@ listings.post("/:id/restore", requireStaff, async (req, res) => {
     );
   });
   res.json({ ok: true });
+});
+
+listings.post(
+  "/:id/images",
+  requireUser,
+  express.raw({
+    type: ["image/jpeg", "image/png", "image/webp"],
+    limit: "5mb",
+  }),
+  async (req, res) => {
+    const mimeType = req.get("content-type")?.split(";", 1)[0] ?? "";
+    const data = imageData(
+      Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
+      mimeType,
+    );
+    const metadata = imageMetadataSchema.parse({
+      altText: req.get("x-image-alt") ?? "",
+      caption: req.get("x-image-caption") ?? "",
+      shareable: req.get("x-image-shareable") === "true",
+      reason: req.get("x-image-reason") ?? "",
+    });
+    if (metadata.shareable && metadata.altText.length < 3)
+      throw new HttpError(
+        400,
+        "Add a short description before using an image as a community card image.",
+      );
+    const image = await transaction(async (client) => {
+      await requireCurrentSession(client, req);
+      const listing = await authorizedImageListing(client, req);
+      return insertListingImage(
+        client,
+        req,
+        listing.id,
+        data,
+        mimeType,
+        metadata,
+      );
+    });
+    res.status(201).json({
+      ...image,
+      id: image.id,
+      url: imageUrl(String(req.params.id), image.id),
+    });
+  },
+);
+
+listings.patch("/:id/images/:imageId", requireUser, async (req, res) => {
+  const data = imagePatchSchema.parse(req.body);
+  const image = await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const listing = await authorizedImageListing(client, req);
+    const currentResult = await client.query(
+      `SELECT id,alt_text AS "altText",caption,shareable,is_lead AS "isLead"
+       FROM entry_images WHERE id=$1 AND listing_id=$2 AND deleted_at IS NULL FOR UPDATE`,
+      [z.uuid().parse(req.params.imageId), listing.id],
+    );
+    const current = currentResult.rows[0];
+    if (!current) throw new HttpError(404, "Image not found.");
+    const nextCommunityCard = data.shareable ?? current.isLead;
+    const nextShareable = nextCommunityCard;
+    const nextLead = nextCommunityCard;
+    const nextAltText = data.altText ?? current.altText;
+    if (nextShareable && nextAltText.trim().length < 3)
+      throw new HttpError(
+        400,
+        "Add a short description before using an image as a community card image.",
+      );
+    if (nextLead)
+      await client.query(
+        "UPDATE entry_images SET is_lead=false,shareable=false,updated_at=now() WHERE listing_id=$1 AND deleted_at IS NULL AND id<>$2",
+        [listing.id, current.id],
+      );
+    const result = await client.query(
+      `UPDATE entry_images SET alt_text=$2,caption=$3,shareable=$4,is_lead=$5,updated_at=now()
+       WHERE id=$1
+       RETURNING id,alt_text AS "altText",caption,shareable,is_lead AS "isLead",
+         sort_order AS "sortOrder",created_at AS "createdAt"`,
+      [
+        current.id,
+        nextAltText,
+        data.caption ?? current.caption,
+        nextShareable,
+        nextLead,
+      ],
+    );
+    await auditImage(client, req, listing.id, "updated", data.reason, {
+      imageId: current.id,
+      changedFields: Object.keys(data).filter((field) => field !== "reason"),
+      communityCard: nextCommunityCard,
+    });
+    return result.rows[0];
+  });
+  res.json({ ...image, url: imageUrl(String(req.params.id), image.id) });
+});
+
+listings.delete("/:id/images/:imageId", requireUser, async (req, res) => {
+  const data = z
+    .object({ reason: z.string().trim().min(3).max(500) })
+    .parse(req.body);
+  await transaction(async (client) => {
+    await requireCurrentSession(client, req);
+    const listing = await authorizedImageListing(client, req);
+    const current = await client.query(
+      "SELECT id FROM entry_images WHERE id=$1 AND listing_id=$2 AND deleted_at IS NULL FOR UPDATE",
+      [z.uuid().parse(req.params.imageId), listing.id],
+    );
+    if (!current.rows[0]) throw new HttpError(404, "Image not found.");
+    await client.query(
+      "UPDATE entry_images SET deleted_at=now(),shareable=false,is_lead=false,updated_at=now() WHERE id=$1",
+      [current.rows[0].id],
+    );
+    await auditImage(client, req, listing.id, "removed", data.reason, {
+      imageId: current.rows[0].id,
+      softDeleted: true,
+    });
+  });
+  res.json({ ok: true });
+});
+
+listings.get("/:id/images/:imageId", async (req, res) => {
+  const listingId = z.uuid().parse(req.params.id);
+  const imageId = z.uuid().parse(req.params.imageId);
+  const { rows } = await pool.query(
+    `SELECT image.data,image.mime_type AS "mimeType",image.shareable,
+       listing.status,listing.owner_id
+     FROM entry_images image
+     JOIN listings listing ON listing.id=image.listing_id
+     WHERE image.id=$1 AND image.listing_id=$2 AND image.deleted_at IS NULL`,
+    [imageId, listingId],
+  );
+  const image = rows[0];
+  if (!image) throw new HttpError(404, "Image not found.");
+  const publicImage = image.status === "published";
+  if (!publicImage) {
+    if (!req.account) throw new HttpError(404, "Image not found.");
+    if (image.owner_id !== req.account.id) assertStaff(req);
+    res.set("Cache-Control", "private, no-store");
+  } else {
+    res.set("Cache-Control", "public, max-age=3600");
+  }
+  res.type(image.mimeType).send(image.data);
 });
 
 listings.get("/facets", async (_req, res) => {
@@ -593,6 +860,20 @@ listings.post("/", limit("submission", 20, 60), async (req, res) => {
     return;
   }
   const e = parsed.data;
+  const rawIdempotencyKey = req.get("idempotency-key");
+  const idempotencyKey = rawIdempotencyKey
+    ? z.string().trim().min(16).max(200).parse(rawIdempotencyKey)
+    : null;
+  const requestHash = idempotencyKey
+    ? createHash("sha256")
+        .update(
+          JSON.stringify({
+            body: req.body,
+            accountId: req.account?.id ?? null,
+          }),
+        )
+        .digest("hex")
+    : null;
   validateLocation(e.location);
   // A stale tab must never silently turn an account-owned submission anonymous,
   // or assign it to a different account that signed in on another tab.
@@ -612,11 +893,33 @@ listings.post("/", limit("submission", 20, 60), async (req, res) => {
     legacyConnections({ url: e.url, contact_url: e.contactUrl });
   const result = await transaction(async (client) => {
     if (req.account) await requireCurrentSession(client, req);
+    if (idempotencyKey && requestHash) {
+      const inserted = await client.query(
+        `INSERT INTO listing_submission_idempotency(idempotency_key,request_hash)
+         VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING idempotency_key`,
+        [idempotencyKey, requestHash],
+      );
+      if (!inserted.rowCount) {
+        const existing = await client.query(
+          `SELECT request_hash,response FROM listing_submission_idempotency
+           WHERE idempotency_key=$1 FOR UPDATE`,
+          [idempotencyKey],
+        );
+        if (existing.rows[0]?.request_hash !== requestHash)
+          throw new HttpError(
+            409,
+            "That submission key was already used for different entry data.",
+          );
+        if (existing.rows[0]?.response)
+          return { rows: [existing.rows[0].response] };
+        throw new HttpError(409, "That submission is already being processed.");
+      }
+    }
     e.tags = await canonicalTags(client, e.tags);
     e.tags = await syncPlatformTags(client, e.tags, connections);
     e.kind = "entry";
     await context(client, req, "create");
-    return client.query(
+    const created = await client.query(
       `INSERT INTO listings
     (kind,name,summary,description,url,contact_url,location,tags,access_mode,access_instructions,owner_id,status,connections,links,lifecycle,seeking_organizer,public_phone,public_email,public_address,opening_hours)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING id,status`,
@@ -643,6 +946,13 @@ listings.post("/", limit("submission", 20, 60), async (req, res) => {
         e.openingHours,
       ],
     );
+    if (idempotencyKey)
+      await client.query(
+        `UPDATE listing_submission_idempotency SET response=$2::jsonb
+         WHERE idempotency_key=$1`,
+        [idempotencyKey, JSON.stringify(created.rows[0])],
+      );
+    return created;
   });
   res.status(201).json(result.rows[0]);
 });

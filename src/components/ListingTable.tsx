@@ -1,4 +1,5 @@
 import {
+  Box,
   Link,
   Paper,
   Stack,
@@ -64,6 +65,20 @@ export function ListingTable({ items }: { items: Listing[] }) {
                   sx={{ alignItems: "center" }}
                   data-testid="table-entry-heading"
                 >
+                  {item.images.find((image) => image.isLead) && (
+                    <Box
+                      component="img"
+                      src={item.images.find((image) => image.isLead)?.url}
+                      alt={`${item.name} community card image`}
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        objectFit: "cover",
+                        borderRadius: 1,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
                   <Link
                     component={RouterLink}
                     to={`/listings/${item.id}`}

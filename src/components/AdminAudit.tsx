@@ -43,9 +43,9 @@ const listingAuditSchema = z.object({
   requestId: z.string().nullable(),
   before: jsonObject.nullable(),
   after: jsonObject,
-  current: jsonObject,
+  current: jsonObject.nullable(),
   createdAt: z.string(),
-  currentVersion: z.number(),
+  currentVersion: z.number().nullable(),
   actorName: z.string().nullable(),
 });
 const listingAuditResponse = z.object({
@@ -93,9 +93,10 @@ const displayFields = [
   "reference_sources",
 ];
 function changedFields(
-  current: Record<string, unknown>,
+  current: Record<string, unknown> | null,
   target: Record<string, unknown>,
 ) {
+  if (!current) return [];
   return displayFields.filter(
     (field) => JSON.stringify(current[field]) !== JSON.stringify(target[field]),
   );
@@ -132,6 +133,8 @@ export function AdminAudit() {
   const restore = useMutation({
     mutationFn: () => {
       if (!target) throw new Error("Choose a revision first.");
+      if (target.currentVersion === null)
+        throw new Error("Deleted entries cannot be restored from this page.");
       return mutate(`/listings/${target.listingId}/restore`, okSchema, {
         version: target.currentVersion,
         targetVersion: target.version,
@@ -146,6 +149,7 @@ export function AdminAudit() {
   });
   const canRestore =
     !!target &&
+    target.currentVersion !== null &&
     target.version < target.currentVersion &&
     reason.trim().length >= 3;
   return (
@@ -183,7 +187,7 @@ export function AdminAudit() {
                     <Typography variant="caption">
                       {new Date(item.createdAt).toLocaleString()} ·{" "}
                       {actorLabel(item)} · current revision{" "}
-                      {item.currentVersion}
+                      {item.currentVersion ?? "deleted"}
                     </Typography>
                   </Stack>
                 </AccordionSummary>
@@ -209,7 +213,10 @@ export function AdminAudit() {
                     </Typography>
                     <Button
                       startIcon={<RestoreOutlined />}
-                      disabled={item.version >= item.currentVersion}
+                      disabled={
+                        item.currentVersion === null ||
+                        item.version >= item.currentVersion
+                      }
                       onClick={() => {
                         setTarget(item);
                         setReason("");
@@ -285,9 +292,9 @@ export function AdminAudit() {
         <DialogContent>
           <Stack spacing={2}>
             <Typography>
-              This will restore revision {target?.version} over the current
-              revision {target?.currentVersion}. The operation creates a new
-              revision and does not delete history.
+              {target?.currentVersion === null
+                ? "This entry was permanently deleted. Its historical revision is retained for audit and cannot be restored here."
+                : `This will restore revision ${target?.version} over the current revision ${target?.currentVersion}. The operation creates a new revision and does not delete history.`}
             </Typography>
             {target && (
               <Table size="small">
@@ -303,7 +310,7 @@ export function AdminAudit() {
                     <TableRow key={field}>
                       <TableCell>{field}</TableCell>
                       <TableCell sx={{ overflowWrap: "anywhere" }}>
-                        {value(target.current[field])}
+                        {value(target.current?.[field])}
                       </TableCell>
                       <TableCell sx={{ overflowWrap: "anywhere" }}>
                         {value(target.after[field])}

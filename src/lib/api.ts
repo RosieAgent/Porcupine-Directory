@@ -57,13 +57,63 @@ export async function request<T>(
   }
   return schema.parse(body);
 }
+
+export async function uploadImage<T>(
+  path: string,
+  image: Blob,
+  options: {
+    altText: string;
+    caption: string;
+    shareable: boolean;
+    reason: string;
+  },
+  schema: z.ZodType<T>,
+): Promise<T> {
+  const csrf = await fetch("/api/auth/csrf", {
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  if (!csrf.ok)
+    throw new ApiError(
+      "Unable to establish a secure session. Please try again.",
+      csrf.status,
+    );
+  const { token } = z.object({ token: z.string() }).parse(await csrf.json());
+  const response = await fetch("/api" + path, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": image.type,
+      "X-CSRF-Token": token,
+      "X-Image-Alt": options.altText,
+      "X-Image-Caption": options.caption,
+      "X-Image-Shareable": String(options.shareable),
+      "X-Image-Reason": options.reason,
+    },
+    body: image,
+  });
+  const body: unknown = await response.json();
+  if (!response.ok) {
+    const parsed = z.object({ error: z.string() }).safeParse(body);
+    throw new ApiError(
+      parsed.success ? parsed.data.error : "Image upload failed.",
+      response.status,
+    );
+  }
+  return schema.parse(body);
+}
 export function mutate<T>(
   path: string,
   schema: z.ZodType<T>,
   body: unknown = {},
   method = "POST",
+  options?: RequestInit,
 ) {
-  return request(path, schema, { method, body: JSON.stringify(body) });
+  return request(path, schema, {
+    ...options,
+    method,
+    body: JSON.stringify(body),
+  });
 }
 export const queries = {
   tags: queryOptions({

@@ -61,7 +61,14 @@ try {
   function browser() {
     let cookie = "";
     return {
-      async call(path, method = "GET", body, expected = 200, csrf = true) {
+      async call(
+        path,
+        method = "GET",
+        body,
+        expected = 200,
+        csrf = true,
+        extraHeaders = {},
+      ) {
         let token;
         if (method !== "GET" && csrf) {
           const r = await fetch(base + "/auth/csrf", { headers: { cookie } });
@@ -76,6 +83,7 @@ try {
             cookie,
             "Content-Type": "application/json",
             ...(token ? { "X-CSRF-Token": token } : {}),
+            ...extraHeaders,
           },
           body: body === undefined ? undefined : JSON.stringify(body),
         });
@@ -177,6 +185,45 @@ try {
     201,
   );
   assert.equal(anonEntry.status, "published");
+  const idempotencyKey = randomUUID();
+  const idempotentEntry = {
+    ...entry,
+    name: "Idempotent submission fixture",
+  };
+  const firstSubmission = await anonymous.call(
+    "/listings",
+    "POST",
+    idempotentEntry,
+    201,
+    true,
+    { "Idempotency-Key": idempotencyKey },
+  );
+  const replayedSubmission = await anonymous.call(
+    "/listings",
+    "POST",
+    idempotentEntry,
+    201,
+    true,
+    { "Idempotency-Key": idempotencyKey },
+  );
+  assert.equal(replayedSubmission.id, firstSubmission.id);
+  await anonymous.call(
+    "/listings",
+    "POST",
+    { ...idempotentEntry, summary: "A different payload." },
+    409,
+    true,
+    { "Idempotency-Key": idempotencyKey },
+  );
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT count(*)::int AS total FROM listings WHERE name=$1",
+        [idempotentEntry.name],
+      )
+    ).rows[0].total,
+    1,
+  );
   const publicEntry = await anonymous.call("/listings/" + anonEntry.id);
   assert.equal(publicEntry.selfConfirmedAt, null);
   assert.equal(publicEntry.editorReviewedAt, null);
@@ -1252,6 +1299,110 @@ try {
     "GET",
     undefined,
     404,
+  );
+
+  const administratorDeletion = (
+    await pool.query(
+      `INSERT INTO listings(kind,name,summary,status,owner_id)
+       VALUES ('group','Administrator deletion fixture','A disposable administrator deletion fixture.','published',$1)
+       RETURNING id`,
+      [account.id],
+    )
+  ).rows[0];
+  const transfer = (
+    await pool.query(
+      `INSERT INTO ownership_transfers
+       (listing_id,proposer_id,proposer_role,proposer_session_version,recipient_id,prior_owner_id,listing_version,listing_status,reason,state,resolved_at)
+       SELECT $1,$2,'administrator',session_version,$3,$4,1,'published','Protected deletion fixture','cancelled',now()
+       FROM accounts WHERE id=$2
+       RETURNING id`,
+      [administratorDeletion.id, browserAccount.id, bobId, account.id],
+    )
+  ).rows[0];
+  const report = (
+    await pool.query(
+      `INSERT INTO moderation_reports(listing_id,reason,text)
+       VALUES ($1,'other','Protected deletion fixture') RETURNING id`,
+      [administratorDeletion.id],
+    )
+  ).rows[0];
+  await pool.query(
+    `INSERT INTO entry_images(listing_id,data,mime_type,byte_size,alt_text,uploaded_by)
+     VALUES ($1,$2,'image/png',3,'Protected deletion image',$3)`,
+    [administratorDeletion.id, Buffer.from([137, 80, 78]), browserAccount.id],
+  );
+  const csrf = (
+    await (
+      await page.request.get(process.env.APP_ORIGIN + "/api/auth/csrf")
+    ).json()
+  ).token;
+  const administratorDeleteResponse = await page.request.delete(
+    process.env.APP_ORIGIN + `/api/listings/${administratorDeletion.id}`,
+    {
+      headers: { "x-csrf-token": csrf },
+      data: {
+        confirmation: "Administrator deletion fixture",
+        reason: "Remove the protected administrator deletion fixture",
+      },
+    },
+  );
+  assert.equal(
+    administratorDeleteResponse.status(),
+    200,
+    await administratorDeleteResponse.text(),
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT 1 FROM listings WHERE id=$1", [
+        administratorDeletion.id,
+      ])
+    ).rowCount,
+    0,
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT 1 FROM listing_revisions WHERE listing_id=$1", [
+        administratorDeletion.id,
+      ])
+    ).rowCount,
+    1,
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT 1 FROM ownership_transfers WHERE id=$1", [
+        transfer.id,
+      ])
+    ).rowCount,
+    1,
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT 1 FROM moderation_reports WHERE id=$1", [
+        report.id,
+      ])
+    ).rowCount,
+    1,
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT 1 FROM entry_images WHERE listing_id=$1", [
+        administratorDeletion.id,
+      ])
+    ).rowCount,
+    0,
+  );
+  const listingAuditResponse = await page.request.get(
+    process.env.APP_ORIGIN + "/api/admin/audit/listings?page=1",
+  );
+  assert.equal(listingAuditResponse.status(), 200);
+  const listingAudit = await listingAuditResponse.json();
+  assert.ok(
+    listingAudit.items.some(
+      (item) =>
+        item.listingId === administratorDeletion.id &&
+        item.name === "Administrator deletion fixture" &&
+        item.currentVersion === null,
+    ),
   );
   await editor.call(
     "/admin/role",
