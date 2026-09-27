@@ -591,12 +591,15 @@ function Entries({ all }: { all: boolean }) {
   const navigate = useNavigate();
   const [dismissedNotice, setDismissedNotice] = useState<string | null>(null);
   const routeNotice = (
-    location.state as {
-      snackbar?: {
-        severity: "success" | "warning" | "error";
-        message: string;
-      };
-    } | null | undefined
+    location.state as
+      | {
+          snackbar?: {
+            severity: "success" | "warning" | "error";
+            message: string;
+          };
+        }
+      | null
+      | undefined
   )?.snackbar;
   const notice =
     routeNotice && routeNotice.message !== dismissedNotice ? routeNotice : null;

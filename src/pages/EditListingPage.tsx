@@ -207,51 +207,51 @@ export default function EditListingPage() {
       shareable={false}
     >
       <Stack spacing={2}>
-          <Typography color="text.secondary">
-            Revision {listing.version} ·{" "}
-            {listing.status === "archived"
-              ? "Hidden"
-              : listing.status === "pending_review"
-                ? "Pending publication"
-                : "Published"}
-          </Typography>
-          <ListingForm
-            key={listing.version}
-            formId={EDIT_FORM_ID}
-            hideSaveAction
-            initial={{
-              kind: listing.kind,
-              name: listing.name,
-              summary: listing.summary,
-              description: listing.description,
-              url: listing.url ?? "",
-              connections: listing.connections,
-              contactUrl: listing.contactUrl ?? "",
-              location: listing.location ?? "",
-              tags: listing.tags,
-              accessMode: listing.accessMode,
-              accessInstructions: listing.accessInstructions,
-              lifecycle: listing.lifecycle,
-              seekingOrganizer: listing.seekingOrganizer,
-              publicPhone: listing.publicPhone,
-              publicEmail: listing.publicEmail,
-              publicAddress: listing.publicAddress,
-              openingHours: listing.openingHours,
-            }}
-            onSave={save}
-            onDirtyChange={setFormDirty}
-            pending={busy}
-            disabled={busy || !permissions.data?.canEdit}
-            error={update.error}
-            imageContent={
-              <ListingImagesEditor
-                ref={imageEditorRef}
-                listingId={id}
-                images={listing.images}
-                onDirtyChange={setImageDirty}
-              />
-            }
-          />
+        <Typography color="text.secondary">
+          Revision {listing.version} ·{" "}
+          {listing.status === "archived"
+            ? "Hidden"
+            : listing.status === "pending_review"
+              ? "Pending publication"
+              : "Published"}
+        </Typography>
+        <ListingForm
+          key={listing.version}
+          formId={EDIT_FORM_ID}
+          hideSaveAction
+          initial={{
+            kind: listing.kind,
+            name: listing.name,
+            summary: listing.summary,
+            description: listing.description,
+            url: listing.url ?? "",
+            connections: listing.connections,
+            contactUrl: listing.contactUrl ?? "",
+            location: listing.location ?? "",
+            tags: listing.tags,
+            accessMode: listing.accessMode,
+            accessInstructions: listing.accessInstructions,
+            lifecycle: listing.lifecycle,
+            seekingOrganizer: listing.seekingOrganizer,
+            publicPhone: listing.publicPhone,
+            publicEmail: listing.publicEmail,
+            publicAddress: listing.publicAddress,
+            openingHours: listing.openingHours,
+          }}
+          onSave={save}
+          onDirtyChange={setFormDirty}
+          pending={busy}
+          disabled={busy || !permissions.data?.canEdit}
+          error={update.error}
+          imageContent={
+            <ListingImagesEditor
+              ref={imageEditorRef}
+              listingId={id}
+              images={listing.images}
+              onDirtyChange={setImageDirty}
+            />
+          }
+        />
       </Stack>
 
       <EntryActionsMenu

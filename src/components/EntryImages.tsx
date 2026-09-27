@@ -243,10 +243,7 @@ type ListingImagesEditorProps = {
 export const ListingImagesEditor = forwardRef<
   ListingImagesEditorHandle,
   ListingImagesEditorProps
->(function ListingImagesEditor(
-  { listingId, images, onDirtyChange },
-  ref,
-) {
+>(function ListingImagesEditor({ listingId, images, onDirtyChange }, ref) {
   const input = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingImage[]>([]);
   const [savedDrafts, setSavedDrafts] = useState<
@@ -293,11 +290,11 @@ export const ListingImagesEditor = forwardRef<
     ...images
       .filter((image) => !removedImageIds.includes(image.id))
       .map((image) => ({
-      id: image.id,
-      url: image.url,
-      altText: image.altText,
-      kind: "saved" as const,
-      image,
+        id: image.id,
+        url: image.url,
+        altText: image.altText,
+        kind: "saved" as const,
+        image,
       })),
     ...pending.map((image) => ({
       id: image.id,
@@ -489,11 +486,11 @@ export const ListingImagesEditor = forwardRef<
     <Stack spacing={2}>
       <Box>
         <Typography variant="body2" color="text.secondary">
-          Images are part of this entry and appear in its gallery when the
-          entry is published. Select “Use as a community card image” only when
-          you want to choose the one image used on listing cards and featured
-          first on the entry details page. Images are resized in your browser
-          before upload.
+          Images are part of this entry and appear in its gallery when the entry
+          is published. Select “Use as a community card image” only when you
+          want to choose the one image used on listing cards and featured first
+          on the entry details page. Images are resized in your browser before
+          upload.
         </Typography>
         <ImageCommunityUseNotice />
         <Typography variant="body2" color="text.secondary">
@@ -545,7 +542,8 @@ export const ListingImagesEditor = forwardRef<
                   aria-label="Next entry image"
                   onClick={() =>
                     setActiveImageId(
-                      carouselItems[(activeIndex + 1) % carouselItems.length].id,
+                      carouselItems[(activeIndex + 1) % carouselItems.length]
+                        .id,
                     )
                   }
                   sx={{

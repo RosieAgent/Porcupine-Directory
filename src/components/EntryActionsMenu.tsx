@@ -123,7 +123,8 @@ export function EntryActionsMenu({
               sx={
                 mode === "edit" && hasChanges
                   ? {
-                      animation: "entry-actions-pulse 1.8s ease-in-out infinite",
+                      animation:
+                        "entry-actions-pulse 1.8s ease-in-out infinite",
                       "@keyframes entry-actions-pulse": {
                         "0%, 100%": { boxShadow: 6 },
                         "50%": { boxShadow: 12 },
@@ -145,237 +146,236 @@ export function EntryActionsMenu({
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
-        {mode === "view" && (
-          <>
-            <SaveButton
-              listing={listing}
-              trigger={(toggle, saved, savedBusy) => (
-                <MenuItem
-                  disabled={savedBusy}
-                  onClick={() => {
-                    close();
-                    void toggle()
-                      .then((nextSaved) => {
-                        setNotice({
-                          severity: "success",
-                          message: nextSaved
-                            ? "Entry bookmarked."
-                            : "Bookmark removed.",
+          {mode === "view" && (
+            <>
+              <SaveButton
+                listing={listing}
+                trigger={(toggle, saved, savedBusy) => (
+                  <MenuItem
+                    disabled={savedBusy}
+                    onClick={() => {
+                      close();
+                      void toggle()
+                        .then((nextSaved) => {
+                          setNotice({
+                            severity: "success",
+                            message: nextSaved
+                              ? "Entry bookmarked."
+                              : "Bookmark removed.",
+                          });
+                        })
+                        .catch((error: unknown) => {
+                          setNotice({
+                            severity: "error",
+                            message:
+                              error instanceof Error
+                                ? error.message
+                                : "Unable to update the bookmark.",
+                          });
                         });
-                      })
-                      .catch((error: unknown) => {
-                        setNotice({
-                          severity: "error",
-                          message:
-                            error instanceof Error
-                              ? error.message
-                              : "Unable to update the bookmark.",
-                        });
-                      });
-                  }}
-                >
-                  <ListItemIcon>
-                    {saved ? (
-                      <Bookmark fontSize="small" />
-                    ) : (
-                      <BookmarkBorder fontSize="small" />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={saved ? "Remove bookmark" : "Bookmark"}
-                  />
-                </MenuItem>
-              )}
-            />
-            <MenuItem
-              onClick={() => {
-                close();
-                setReportDialogOpen(true);
-              }}
-            >
-              <ListItemIcon>
-                <FlagOutlined fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Report an issue" />
-            </MenuItem>
-          </>
-        )}
-        {shareable && (
-          <ShareButton
-            pathOverride={`/listings/${listing.id}`}
-            trigger={(copy) => (
+                    }}
+                  >
+                    <ListItemIcon>
+                      {saved ? (
+                        <Bookmark fontSize="small" />
+                      ) : (
+                        <BookmarkBorder fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={saved ? "Remove bookmark" : "Bookmark"}
+                    />
+                  </MenuItem>
+                )}
+              />
               <MenuItem
                 onClick={() => {
                   close();
-                  void copy();
+                  setReportDialogOpen(true);
                 }}
               >
                 <ListItemIcon>
-                  <ShareOutlined fontSize="small" />
+                  <FlagOutlined fontSize="small" />
                 </ListItemIcon>
-                <ListItemText primary="Share Link" />
+                <ListItemText primary="Report an issue" />
               </MenuItem>
-            )}
-          />
-        )}
-        {mode === "view" && <Divider />}
-        {(mode === "edit" || canEdit) && (
-          <MenuItem
-            component={Link}
-            to={mode === "edit" ? `/listings/${listing.id}` : editHref}
-            onClick={close}
-          >
-            <ListItemIcon>
-              <EditOutlined fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary={mode === "edit" ? "View entry" : "Edit entry"}
-            />
-          </MenuItem>
-        )}
-        {showStaffActions && canConfirm && (
-          <>
-            <Divider />
-            <ActionItem
-              disabled={busy}
-              icon={<Check fontSize="small" />}
-              label="Confirm accuracy"
-              onClick={() => {
-                close();
-                onAction?.(
-                  "confirm",
-                  "Confirm that you reviewed the currently saved entry and believe it is accurate?",
-                );
-              }}
-            />
-            {listing.status !== "archived" && (
-              <ActionItem
-                disabled={busy}
-                icon={<VisibilityOffOutlined fontSize="small" />}
-                label="Remove from directory"
-                onClick={() => {
-                  close();
-                  onAction?.(
-                    "hide",
-                    "Remove this entry from public browsing? It can be restored by a monitor or administrator.",
-                  );
-                }}
-              />
-            )}
-          </>
-        )}
-        {showStaffActions && canReview && (
-          <>
-            <Divider />
-            <ActionItem
-              disabled={busy}
-              icon={<FactCheckOutlined fontSize="small" />}
-              label="Mark editor-reviewed"
-              onClick={() => {
-                close();
-                onAction?.(
-                  "review",
-                  "Mark the currently saved entry as editor-reviewed?",
-                );
-              }}
-            />
-            <ActionItem
-              disabled={busy}
-              icon={
-                listing.status === "published" ? (
-                  <VisibilityOffOutlined fontSize="small" />
-                ) : (
-                  <VisibilityOutlined fontSize="small" />
-                )
-              }
-              label={listing.status === "published" ? "Hide entry" : "Publish entry"}
-              onClick={() => {
-                close();
-                onAction?.(
-                  listing.status === "published" ? "hide" : "publish",
-                  listing.status === "published"
-                    ? "Hide this entry from public browsing?"
-                    : "Publish this entry?",
-                );
-              }}
-            />
-            <OwnershipAssignment
-              key={listing.id + ":" + userId}
-              listingId={listing.id}
-              version={listing.version}
-              trigger={(openAssignment) => (
+            </>
+          )}
+          {shareable && (
+            <ShareButton
+              pathOverride={`/listings/${listing.id}`}
+              trigger={(copy) => (
                 <MenuItem
-                  disabled={busy}
                   onClick={() => {
                     close();
-                    openAssignment();
+                    void copy();
                   }}
                 >
                   <ListItemIcon>
-                    <PersonAddOutlined fontSize="small" />
+                    <ShareOutlined fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText primary="Assign owner" />
+                  <ListItemText primary="Share Link" />
                 </MenuItem>
               )}
             />
+          )}
+          {mode === "view" && <Divider />}
+          {(mode === "edit" || canEdit) && (
             <MenuItem
               component={Link}
-              to={historyHref}
+              to={mode === "edit" ? `/listings/${listing.id}` : editHref}
               onClick={close}
             >
               <ListItemIcon>
-                <HistoryOutlined fontSize="small" />
+                <EditOutlined fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Revision history" />
+              <ListItemText
+                primary={mode === "edit" ? "View entry" : "Edit entry"}
+              />
             </MenuItem>
-          </>
-        )}
-        {mode === "edit" && onSave && (
-          <>
-            <Divider />
-            <Tooltip title={!hasChanges ? "No changes detected" : ""}>
-              <span>
-                <MenuItem
-                  disabled={
-                    busy ||
-                    permissionsPending ||
-                    !canEdit ||
-                    !hasChanges
-                  }
+          )}
+          {showStaffActions && canConfirm && (
+            <>
+              <Divider />
+              <ActionItem
+                disabled={busy}
+                icon={<Check fontSize="small" />}
+                label="Confirm accuracy"
+                onClick={() => {
+                  close();
+                  onAction?.(
+                    "confirm",
+                    "Confirm that you reviewed the currently saved entry and believe it is accurate?",
+                  );
+                }}
+              />
+              {listing.status !== "archived" && (
+                <ActionItem
+                  disabled={busy}
+                  icon={<VisibilityOffOutlined fontSize="small" />}
+                  label="Remove from directory"
                   onClick={() => {
                     close();
-                    onSave();
+                    onAction?.(
+                      "hide",
+                      "Remove this entry from public browsing? It can be restored by a monitor or administrator.",
+                    );
                   }}
-                >
-                  <ListItemIcon>
-                    <SaveOutlined fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={savePending ? "Saving…" : "Save changes"}
-                    secondary={!hasChanges ? "No changes detected" : undefined}
-                  />
-                </MenuItem>
-              </span>
-            </Tooltip>
-          </>
-        )}
-        {canDelete && (
-          <>
-            <Divider />
-            <MenuItem
-              disabled={busy}
-              onClick={() => {
-                close();
-                setDeleteDialogOpen(true);
-              }}
-            >
-              <ListItemIcon>
-                <DeleteForeverOutlined fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Delete entry" />
-            </MenuItem>
-          </>
-        )}
+                />
+              )}
+            </>
+          )}
+          {showStaffActions && canReview && (
+            <>
+              <Divider />
+              <ActionItem
+                disabled={busy}
+                icon={<FactCheckOutlined fontSize="small" />}
+                label="Mark editor-reviewed"
+                onClick={() => {
+                  close();
+                  onAction?.(
+                    "review",
+                    "Mark the currently saved entry as editor-reviewed?",
+                  );
+                }}
+              />
+              <ActionItem
+                disabled={busy}
+                icon={
+                  listing.status === "published" ? (
+                    <VisibilityOffOutlined fontSize="small" />
+                  ) : (
+                    <VisibilityOutlined fontSize="small" />
+                  )
+                }
+                label={
+                  listing.status === "published"
+                    ? "Hide entry"
+                    : "Publish entry"
+                }
+                onClick={() => {
+                  close();
+                  onAction?.(
+                    listing.status === "published" ? "hide" : "publish",
+                    listing.status === "published"
+                      ? "Hide this entry from public browsing?"
+                      : "Publish this entry?",
+                  );
+                }}
+              />
+              <OwnershipAssignment
+                key={listing.id + ":" + userId}
+                listingId={listing.id}
+                version={listing.version}
+                trigger={(openAssignment) => (
+                  <MenuItem
+                    disabled={busy}
+                    onClick={() => {
+                      close();
+                      openAssignment();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <PersonAddOutlined fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary="Assign owner" />
+                  </MenuItem>
+                )}
+              />
+              <MenuItem component={Link} to={historyHref} onClick={close}>
+                <ListItemIcon>
+                  <HistoryOutlined fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Revision history" />
+              </MenuItem>
+            </>
+          )}
+          {mode === "edit" && onSave && (
+            <>
+              <Divider />
+              <Tooltip title={!hasChanges ? "No changes detected" : ""}>
+                <span>
+                  <MenuItem
+                    disabled={
+                      busy || permissionsPending || !canEdit || !hasChanges
+                    }
+                    onClick={() => {
+                      close();
+                      onSave();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <SaveOutlined fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={savePending ? "Saving…" : "Save changes"}
+                      secondary={
+                        !hasChanges ? "No changes detected" : undefined
+                      }
+                    />
+                  </MenuItem>
+                </span>
+              </Tooltip>
+            </>
+          )}
+          {canDelete && (
+            <>
+              <Divider />
+              <MenuItem
+                disabled={busy}
+                onClick={() => {
+                  close();
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                <ListItemIcon>
+                  <DeleteForeverOutlined fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Delete entry" />
+              </MenuItem>
+            </>
+          )}
         </Menu>
         {canDelete && (
           <DeleteListingDialog

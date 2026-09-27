@@ -432,8 +432,8 @@ function DetailedListingForm({
             {issues.length > 0 && (
               <Alert id="edit-form-errors" severity="error" tabIndex={-1}>
                 <Typography sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Check {issues.length === 1 ? "this field" : "these fields"} before
-                  saving.
+                  Check {issues.length === 1 ? "this field" : "these fields"}{" "}
+                  before saving.
                 </Typography>
                 <Stack component="ul" spacing={0.25} sx={{ m: 0, pl: 2 }}>
                   {issues.map((issue) => (
