@@ -30,6 +30,8 @@ export async function migrate() {
     "023_community_card_images.sql",
     "024_listing_submission_idempotency.sql",
     "025_preserve_listing_audit_on_delete.sql",
+    "026_admin_activity_feed.sql",
+    "027_service_account_soft_delete.sql",
   ];
   const client = await pool.connect();
   try {

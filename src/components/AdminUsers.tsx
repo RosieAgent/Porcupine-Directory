@@ -87,6 +87,8 @@ export function AdminUsers({
         <TextField
           label="Search usernames"
           value={search}
+          fullWidth
+          sx={{ maxWidth: 440 }}
           onChange={(event) => {
             setSearch(event.target.value);
             setPage(1);
@@ -129,15 +131,6 @@ export function AdminUsers({
                         key={account.id}
                         hover
                         selected={account.id === selectedId}
-                        tabIndex={0}
-                        onClick={() => onEdit(account)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            onEdit(account);
-                          }
-                        }}
-                        sx={{ cursor: "pointer" }}
                       >
                         <TableCell component="th" scope="row">
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -159,20 +152,14 @@ export function AdminUsers({
                           <IconAction
                             label={`Edit account: ${account.username}`}
                             disabled={!canEdit}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onEdit(account);
-                            }}
+                            onClick={() => onEdit(account)}
                           >
                             <EditOutlined />
                           </IconAction>
                           <IconAction
                             label={`Delete account: ${account.username}`}
                             disabled={!canDelete}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onDelete(account);
-                            }}
+                            onClick={() => onDelete(account)}
                           >
                             <DeleteOutlineOutlined />
                           </IconAction>
@@ -183,10 +170,7 @@ export function AdminUsers({
                                 : `Make monitor: ${account.username}`
                             }
                             disabled={!canMakeMonitor}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onToggleMonitor(account);
-                            }}
+                            onClick={() => onToggleMonitor(account)}
                           >
                             <SupervisorAccountOutlined />
                           </IconAction>

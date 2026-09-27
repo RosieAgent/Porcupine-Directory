@@ -2,6 +2,7 @@ import { pool } from "./db.js";
 import { audit, transaction } from "./security.js";
 import {
   createServiceTokenValue,
+  defaultServiceScopes,
   hashServiceToken,
   insertServiceAccount,
   serviceEnvironments,
@@ -28,7 +29,7 @@ try {
   if (command === "revoke") {
     await transaction(async (client) => {
       const result = await client.query(
-        "UPDATE service_accounts SET revoked_at=COALESCE(revoked_at,now()) WHERE name=$1 AND environment=$2 RETURNING id",
+        "UPDATE service_accounts SET revoked_at=COALESCE(revoked_at,now()) WHERE name=$1 AND environment=$2 AND deleted_at IS NULL RETURNING id",
         [serviceName, serviceEnvironment],
       );
       if (!result.rowCount) throw new Error("Service account not found.");
@@ -77,11 +78,11 @@ try {
         const result = await client.query(
           `UPDATE service_accounts
            SET scopes=$3,token_hash=$4,token_prefix=$5,expires_at=$6,revoked_at=NULL
-           WHERE name=$1 AND environment=$2 RETURNING id`,
+           WHERE name=$1 AND environment=$2 AND deleted_at IS NULL RETURNING id`,
           [
             serviceName,
             serviceEnvironment,
-            ["listings:read", "listings:write"],
+            defaultServiceScopes,
             hashServiceToken(token),
             token.slice(0, 16),
             expiresAt,
@@ -99,7 +100,7 @@ try {
             details: {
               name: serviceName,
               environment: serviceEnvironment,
-              scopes: ["listings:read", "listings:write"],
+              scopes: defaultServiceScopes,
               expiresAt: expiresAt.toISOString(),
             },
           },
@@ -107,7 +108,7 @@ try {
         output = {
           token,
           expiresAt,
-          scopes: ["listings:read", "listings:write"],
+          scopes: defaultServiceScopes,
         };
       }
     });

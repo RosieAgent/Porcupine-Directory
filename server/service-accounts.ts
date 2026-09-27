@@ -10,8 +10,16 @@ export const serviceEnvironments = [
   "production",
 ] as const;
 export type ServiceEnvironment = (typeof serviceEnvironments)[number];
-export const serviceScopes = ["listings:read", "listings:write"] as const;
+export const serviceScopes = [
+  "listings:read",
+  "listings:create",
+  "listings:edit",
+] as const;
 export type ServiceScope = (typeof serviceScopes)[number];
+export const defaultServiceScopes: ServiceScope[] = [
+  "listings:read",
+  "listings:edit",
+];
 
 export function runtimeEnvironment(): ServiceEnvironment {
   const configured = process.env.APP_ENVIRONMENT;
@@ -53,6 +61,7 @@ export async function insertServiceAccount(
     name: string;
     environment: ServiceEnvironment;
     expiresInDays?: number;
+    scopes?: ServiceScope[];
   },
 ) {
   const name = validServiceName(input.name);
@@ -61,11 +70,11 @@ export async function insertServiceAccount(
   const result = await client.query(
     `INSERT INTO service_accounts(name,environment,scopes,token_hash,token_prefix,expires_at)
      VALUES ($1,$2,$3,$4,$5,$6)
-     RETURNING id,name,environment,scopes,token_prefix AS "tokenPrefix",expires_at AS "expiresAt",revoked_at AS "revokedAt",created_at AS "createdAt",last_used_at AS "lastUsedAt"`,
+     RETURNING id,name,environment,scopes,token_prefix AS "tokenPrefix",expires_at AS "expiresAt",revoked_at AS "revokedAt",created_at AS "createdAt",last_used_at AS "lastUsedAt",deleted_at AS "deletedAt"`,
     [
       name,
       input.environment,
-      serviceScopes,
+      input.scopes ?? defaultServiceScopes,
       hashServiceToken(token),
       token.slice(0, 16),
       expiresAt,
@@ -89,7 +98,8 @@ export const authenticateServiceToken: RequestHandler = async (
   const { rows } = await pool.query(
     `SELECT id,name,environment,scopes
      FROM service_accounts
-     WHERE token_hash=$1 AND revoked_at IS NULL AND expires_at>now() AND environment=$2`,
+     WHERE token_hash=$1 AND revoked_at IS NULL AND deleted_at IS NULL
+       AND expires_at>now() AND environment=$2`,
     [hashServiceToken(token), runtimeEnvironment()],
   );
   const service = rows[0];
@@ -102,7 +112,7 @@ export const authenticateServiceToken: RequestHandler = async (
     environment: service.environment,
     scopes: service.scopes,
   };
-  req.requestId = randomUUID();
+  req.requestId ??= randomUUID();
   res.set("X-Request-ID", req.requestId);
   await pool.query(
     "UPDATE service_accounts SET last_used_at=now(),last_used_ip=$2 WHERE id=$1",
@@ -113,7 +123,13 @@ export const authenticateServiceToken: RequestHandler = async (
 
 export function requireServiceScope(scope: ServiceScope): RequestHandler {
   return (req, _res, next) => {
-    if (!req.serviceAccount?.scopes.includes(scope))
+    const scopes = req.serviceAccount?.scopes ?? [];
+    // Existing listings:write tokens retain their prior edit capability.
+    // They do not gain the new listings:create capability.
+    const allowed =
+      scopes.includes(scope) ||
+      (scope === "listings:edit" && scopes.includes("listings:write"));
+    if (!allowed)
       throw new HttpError(403, `The service token lacks the ${scope} scope.`);
     next();
   };

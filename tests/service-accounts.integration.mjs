@@ -34,15 +34,26 @@ try {
        RETURNING id,version`,
     )
   ).rows[0];
+  const nonPublicListings = (
+    await pool.query(
+      `INSERT INTO listings(kind,name,summary,description,status)
+       VALUES
+         ('group','Service test pending listing','A private listing for service tests.','Pending description','pending_review'),
+         ('group','Service test archived listing','An archived listing for service tests.','Archived description','archived')
+       RETURNING id,status`,
+    )
+  ).rows;
   const token = createServiceTokenValue();
   const readOnlyToken = createServiceTokenValue();
   const productionToken = createServiceTokenValue();
+  const creatorToken = createServiceTokenValue();
   await pool.query(
     `INSERT INTO service_accounts(name,environment,scopes,token_hash,token_prefix,expires_at)
      VALUES
        ('test-writer','staging',ARRAY['listings:read','listings:write'],$1,$2,now()+interval '1 day'),
        ('test-reader','staging',ARRAY['listings:read'],$3,$4,now()+interval '1 day'),
-       ('test-writer','production',ARRAY['listings:read','listings:write'],$5,$6,now()+interval '1 day')`,
+       ('test-writer','production',ARRAY['listings:read','listings:write'],$5,$6,now()+interval '1 day'),
+       ('test-creator','staging',ARRAY['listings:read','listings:create','listings:edit'],$7,$8,now()+interval '1 day')`,
     [
       hashServiceToken(token),
       token.slice(0, 16),
@@ -50,6 +61,8 @@ try {
       readOnlyToken.slice(0, 16),
       hashServiceToken(productionToken),
       productionToken.slice(0, 16),
+      hashServiceToken(creatorToken),
+      creatorToken.slice(0, 16),
     ],
   );
   server = app.listen(4352, "127.0.0.1");
@@ -87,6 +100,10 @@ try {
   assert.equal(result.response.status, 200);
   assert.equal(result.data.name, "Service test listing");
   assert.equal("owner_id" in result.data, false);
+  for (const nonPublicListing of nonPublicListings) {
+    result = await call(`/listings/${nonPublicListing.id}`);
+    assert.equal(result.response.status, 404);
+  }
   result = await call(
     `/listings/${listing.id}`,
     "PATCH",
@@ -149,6 +166,89 @@ try {
     { "Idempotency-Key": "service-test-reader-write" },
   );
   assert.equal(readOnly.response.status, 403);
+  const createBody = {
+    kind: "group",
+    name: "Service-created integration listing",
+    summary: "A listing created by the service integration test.",
+    description: "Created through the scoped service API.",
+    url: "https://example.test/created",
+    location: "",
+    tags: [],
+    accessMode: "unknown",
+    reason: "Created from a verified source for integration coverage.",
+  };
+  result = await call("/listings", "POST", createBody, token, {
+    "Idempotency-Key": "service-test-create-denied",
+  });
+  assert.equal(result.response.status, 403);
+  result = await call("/listings", "POST", createBody, creatorToken, {
+    "Idempotency-Key": "service-test-create-1",
+  });
+  assert.equal(result.response.status, 201, JSON.stringify(result.data));
+  assert.equal(result.data.status, "published");
+  const createdListingId = result.data.id;
+  const createdAgain = await call(
+    "/listings",
+    "POST",
+    createBody,
+    creatorToken,
+    {
+      "Idempotency-Key": "service-test-create-1",
+    },
+  );
+  assert.deepEqual(createdAgain.data, result.data);
+  const imageBytes = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ]);
+  async function uploadImage(key, suppliedToken = creatorToken) {
+    const response = await fetch(
+      `${base}/listings/${createdListingId}/images`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${suppliedToken}`,
+          "Content-Type": "image/png",
+          "Idempotency-Key": key,
+          "X-Image-Alt": "Example community image",
+          "X-Image-Reason": "Added from a checked public source.",
+        },
+        body: imageBytes,
+      },
+    );
+    return { response, data: await response.json() };
+  }
+  const deniedImage = await uploadImage(
+    "service-test-image-denied",
+    readOnlyToken,
+  );
+  assert.equal(deniedImage.response.status, 403);
+  const uploadedImage = await uploadImage("service-test-image-1");
+  assert.equal(
+    uploadedImage.response.status,
+    201,
+    JSON.stringify(uploadedImage.data),
+  );
+  const uploadedAgain = await uploadImage("service-test-image-1");
+  assert.deepEqual(uploadedAgain.data, uploadedImage.data);
+  const imageMetadata = await call(
+    `/listings/${createdListingId}/images/${uploadedImage.data.id}`,
+    "PATCH",
+    {
+      altText: "Updated community image description",
+      reason: "Improved the image description from the source.",
+    },
+    creatorToken,
+    { "Idempotency-Key": "service-test-image-update-1" },
+  );
+  assert.equal(
+    imageMetadata.response.status,
+    200,
+    JSON.stringify(imageMetadata.data),
+  );
+  assert.equal(
+    imageMetadata.data.altText,
+    "Updated community image description",
+  );
   const revisions = await pool.query(
     `SELECT actor_type,action,reason,details FROM listing_revisions
      WHERE listing_id=$1 AND version=2`,
@@ -193,7 +293,7 @@ try {
     patch.changes.referenceSources,
   );
   console.log(
-    "Service-account integration passed: scoped reads, immediate listing writes, idempotency, stale-version rejection and audit attribution.",
+    "Service-account integration passed: public-only reads, scoped create/edit/image writes, idempotency, stale-version rejection and audit attribution.",
   );
 } finally {
   if (server) await new Promise((resolve) => server.close(resolve));
